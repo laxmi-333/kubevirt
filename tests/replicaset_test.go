@@ -127,7 +127,7 @@ var _ = Describe("[rfe_id:588][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 
 	newReplicaSet := func() *v1.VirtualMachineInstanceReplicaSet {
 		By("Create a new VirtualMachineInstance replica set")
-		template := libvmifact.NewCirros(
+		template := libvmifact.NewAlpine(
 			libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 			libvmi.WithNetwork(v1.DefaultPodNetwork()),
 		)
@@ -156,7 +156,7 @@ var _ = Describe("[rfe_id:588][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 	)
 
 	DescribeTable("[rfe_id:588][crit:medium][vendor:cnv-qe@redhat.com][level:component]should scale with the horizontal pod autoscaler", func(startScale int, stopScale int) {
-		template := libvmifact.NewCirros(
+		template := libvmifact.NewAlpine(
 			libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 			libvmi.WithNetwork(v1.DefaultPodNetwork()),
 		)
@@ -218,7 +218,7 @@ var _ = Describe("[rfe_id:588][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 		err = json.Unmarshal(body, reviewResponse)
 		Expect(err).ToNot(HaveOccurred())
 
-		Expect(reviewResponse.Details.Causes).To(HaveLen(1))
+		Expect(reviewResponse.Details.Causes).To(HaveLen(2))
 		Expect(reviewResponse.Details.Causes[0].Field).To(Equal("spec.template.spec.domain.devices.disks[2].name"))
 	})
 	It("[test_id:1413]should update readyReplicas once VMIs are up", func() {
@@ -404,7 +404,7 @@ var _ = Describe("[rfe_id:588][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 
 	It("should replace a VMI immediately when a virt-launcher pod gets deleted", func() {
 		By("Creating new replica set")
-		template := libvmifact.NewCirros(
+		template := libvmifact.NewAlpine(
 			libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 			libvmi.WithNetwork(v1.DefaultPodNetwork()),
 			libvmi.WithTerminationGracePeriod(200),

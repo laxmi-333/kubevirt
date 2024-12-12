@@ -64,7 +64,7 @@ var _ = Describe("[rfe_id:3064][crit:medium][vendor:cnv-qe@redhat.com][level:com
 
 		BeforeEach(func() {
 			const timeout = 90
-			vmi = libvmops.RunVMIAndExpectLaunch(libvmifact.NewCirros(), timeout)
+			vmi = libvmops.RunVMIAndExpectLaunch(libvmifact.NewAlpine(), timeout)
 		})
 
 		It("[test_id:4597]should signal paused state with condition", func() {
@@ -86,7 +86,7 @@ var _ = Describe("[rfe_id:3064][crit:medium][vendor:cnv-qe@redhat.com][level:com
 
 		It("[test_id:3224]should not be paused with a LivenessProbe configured", func() {
 			By("Launching a VMI with LivenessProbe")
-			vmi = libvmifact.NewCirros(
+			vmi = libvmifact.NewAlpine(
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
 			)
@@ -135,7 +135,7 @@ var _ = Describe("[rfe_id:3064][crit:medium][vendor:cnv-qe@redhat.com][level:com
 		var vm *v1.VirtualMachine
 
 		BeforeEach(func() {
-			vm = libvmi.NewVirtualMachine(libvmifact.NewCirros(
+			vm = libvmi.NewVirtualMachine(libvmifact.NewAlpine(
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork())),
 				libvmi.WithRunStrategy(v1.RunStrategyAlways))
@@ -337,10 +337,10 @@ var _ = Describe("[rfe_id:3064][crit:medium][vendor:cnv-qe@redhat.com][level:com
 		BeforeEach(func() {
 			By("Starting a Cirros VMI")
 			const timeout = 90
-			vmi = libvmops.RunVMIAndExpectLaunch(libvmifact.NewCirros(), timeout)
+			vmi = libvmops.RunVMIAndExpectLaunch(libvmifact.NewAlpine(), timeout)
 
 			By("Checking that the VirtualMachineInstance console has expected output")
-			Expect(console.LoginToCirros(vmi)).To(Succeed())
+			Expect(console.LoginToAlpine(vmi)).To(Succeed())
 
 			By("checking uptime difference between guest and host")
 			uptimeDiffBeforePausing = hostUptime() - grepGuestUptime(vmi)

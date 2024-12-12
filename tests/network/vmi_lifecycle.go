@@ -93,7 +93,7 @@ var _ = SIGDescribe("[crit:high][arm64][vendor:cnv-qe@redhat.com][level:componen
 				}, 50, 5).Should(Equal(k8sv1.PodSucceeded))
 
 				By("starting another VMI on the same node, to verify kubelet is running again")
-				newVMI := libvmifact.NewCirros()
+				newVMI := libvmifact.NewAlpine()
 				newVMI.Spec.NodeSelector = map[string]string{k8sv1.LabelHostname: nodeName}
 				Eventually(func() error {
 					newVMI, err = virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(newVMI)).Create(context.Background(), newVMI, metav1.CreateOptions{})
@@ -111,7 +111,7 @@ var _ = SIGDescribe("[crit:high][arm64][vendor:cnv-qe@redhat.com][level:componen
 
 			It("VMIs with Bridge Networking should work with Duplicate Address Detection (DAD)", decorators.Networking, func() {
 				libnet.SkipWhenClusterNotSupportIpv4()
-				bridgeVMI := libvmifact.NewCirros(
+				bridgeVMI := libvmifact.NewAlpine(
 					libvmi.WithInterface(*v1.DefaultBridgeNetworkInterface()),
 					libvmi.WithNetwork(v1.DefaultPodNetwork()),
 				)
@@ -121,11 +121,11 @@ var _ = SIGDescribe("[crit:high][arm64][vendor:cnv-qe@redhat.com][level:componen
 				Expect(err).ToNot(HaveOccurred())
 
 				By("Waiting the VirtualMachineInstance start")
-				bridgeVMI = libwait.WaitUntilVMIReady(bridgeVMI, console.LoginToCirros)
+				bridgeVMI = libwait.WaitUntilVMIReady(bridgeVMI, console.LoginToAlpine)
 				verifyDummyNicForBridgeNetwork(bridgeVMI)
 
 				vmIP := libnet.GetVmiPrimaryIPByFamily(bridgeVMI, k8sv1.IPv4Protocol)
-				dadCommand := fmt.Sprintf("sudo /usr/sbin/arping -D -I eth0 -c 2 %s | grep Received | cut -d ' ' -f 2\n", vmIP)
+				dadCommand := fmt.Sprintf("/usr/sbin/arping -D -I eth0 -c 2 %s | grep Received | cut -d ' ' -f 2\n", vmIP)
 
 				Expect(console.SafeExpectBatch(bridgeVMI, []expect.Batcher{
 					&expect.BSnd{S: "\n"},

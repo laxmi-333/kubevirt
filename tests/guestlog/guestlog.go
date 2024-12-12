@@ -32,27 +32,27 @@ import (
 	"kubevirt.io/kubevirt/tests/testsuite"
 )
 
-const cirrosStartupTimeout = 60
+const alpineStartupTimeout = 60
 const testString = "GuestConsoleTest3413254123535234523"
 
 var _ = Describe("[sig-compute]Guest console log", decorators.SigCompute, func() {
 
 	var (
-		cirrosVmi *v1.VirtualMachineInstance
+		alpineVmi *v1.VirtualMachineInstance
 	)
 
 	BeforeEach(func() {
-		cirrosVmi = libvmifact.NewCirros(libvmi.WithLogSerialConsole(true))
-		cirrosVmi.Spec.Domain.Devices.AutoattachSerialConsole = pointer.P(true)
+		alpineVmi = libvmifact.NewAlpine(libvmi.WithLogSerialConsole(true))
+		alpineVmi.Spec.Domain.Devices.AutoattachSerialConsole = pointer.P(true)
 	})
 
 	Describe("[level:component] Guest console log container", func() {
 		Context("set LogSerialConsole", func() {
 			DescribeTable("should successfully start with LogSerialConsole", func(autoattachSerialConsole, logSerialConsole, expected bool) {
 				By("Starting a VMI")
-				cirrosVmi = libvmifact.NewCirros(libvmi.WithLogSerialConsole(logSerialConsole))
-				cirrosVmi.Spec.Domain.Devices.AutoattachSerialConsole = pointer.P(autoattachSerialConsole)
-				vmi := libvmops.RunVMIAndExpectLaunch(cirrosVmi, cirrosStartupTimeout)
+				alpineVmi = libvmifact.NewAlpine(libvmi.WithLogSerialConsole(logSerialConsole))
+				alpineVmi.Spec.Domain.Devices.AutoattachSerialConsole = pointer.P(autoattachSerialConsole)
+				vmi := libvmops.RunVMIAndExpectLaunch(alpineVmi, alpineStartupTimeout)
 
 				By("Finding virt-launcher pod")
 				virtlauncherPod, err := libpod.GetPodByVirtualMachineInstance(vmi, testsuite.GetTestNamespace(vmi))
@@ -81,7 +81,7 @@ var _ = Describe("[sig-compute]Guest console log", decorators.SigCompute, func()
 
 			It("it should exit cleanly when the shutdown is initiated by the guest", func() {
 				By("Starting a VMI")
-				vmi := libvmops.RunVMIAndExpectLaunch(cirrosVmi, cirrosStartupTimeout)
+				vmi := libvmops.RunVMIAndExpectLaunch(alpineVmi, alpineStartupTimeout)
 
 				By("Finding virt-launcher pod")
 				virtlauncherPod, err := libpod.GetPodByVirtualMachineInstance(vmi, testsuite.GetTestNamespace(vmi))
@@ -95,9 +95,9 @@ var _ = Describe("[sig-compute]Guest console log", decorators.SigCompute, func()
 				Expect(foundContainer).To(BeTrue())
 
 				By("Triggering a shutdown from the guest OS")
-				Expect(console.LoginToCirros(vmi)).To(Succeed())
+				Expect(console.LoginToAlpine(vmi)).To(Succeed())
 				Expect(console.SafeExpectBatch(vmi, []expect.Batcher{
-					&expect.BSnd{S: "sudo poweroff\n"},
+					&expect.BSnd{S: "poweroff\n"},
 					&expect.BExp{R: "The system is going down NOW!"},
 				}, 240)).To(Succeed())
 
@@ -115,16 +115,10 @@ var _ = Describe("[sig-compute]Guest console log", decorators.SigCompute, func()
 		Context("fetch logs", func() {
 			var vmi *v1.VirtualMachineInstance
 
-			var cirrosLogo = `
-  ____               ____  ____
- / __/ __ ____ ____ / __ \/ __/
-/ /__ / // __// __// /_/ /\ \ 
-\___//_//_/  /_/   \____/___/ 
-   http://cirros-cloud.net
-`
+			var alpineLogo = "Welcome to Alpine Linux"
 
-			It("it should fetch logs for a running VM with logs API", func() {
-				vmi = libvmops.RunVMIAndExpectLaunch(cirrosVmi, cirrosStartupTimeout)
+			It("[test_id:funny]it should fetch logs for a running VM with logs API", func() {
+				vmi = libvmops.RunVMIAndExpectLaunch(alpineVmi, alpineStartupTimeout)
 
 				By("Finding virt-launcher pod")
 				virtlauncherPod, err := libpod.GetPodByVirtualMachineInstance(vmi, testsuite.GetTestNamespace(vmi))
@@ -135,11 +129,11 @@ var _ = Describe("[sig-compute]Guest console log", decorators.SigCompute, func()
 				Eventually(func(g Gomega) bool {
 					logs, err := getConsoleLogs(virtlauncherPod)
 					g.Expect(err).ToNot(HaveOccurred())
-					return strings.Contains(logs, cirrosLogo)
-				}, cirrosStartupTimeout*time.Second, 2*time.Second).Should(BeTrue())
+					return strings.Contains(logs, alpineLogo)
+				}, alpineStartupTimeout*time.Second, 2*time.Second).Should(BeTrue())
 
 				By("Obtaining the serial console, logging in and executing a command there")
-				Expect(console.LoginToCirros(vmi)).To(Succeed())
+				Expect(console.LoginToAlpine(vmi)).To(Succeed())
 				Expect(console.SafeExpectBatch(vmi, []expect.Batcher{
 					&expect.BSnd{S: "echo " + testString + "\n"},
 					&expect.BExp{R: testString},
@@ -161,7 +155,7 @@ var _ = Describe("[sig-compute]Guest console log", decorators.SigCompute, func()
 				Expect(err).ToNot(HaveOccurred())
 
 				By("Ensuring that logs contain the login attempt")
-				Expect(logs).To(ContainSubstring(vmi.Name + " login: cirros"))
+				Expect(logs).To(ContainSubstring("localhost login:"))
 
 				// TODO: console.LoginToCirros is not systematically waiting for `\u001b[8m` to prevent echoing the password, fix it first
 				// By("Ensuring that logs don't contain the login password")
@@ -173,7 +167,7 @@ var _ = Describe("[sig-compute]Guest console log", decorators.SigCompute, func()
 			})
 
 			It("it should rotate the internal log files", decorators.Periodic, func() {
-				vmi = libvmops.RunVMIAndExpectLaunch(cirrosVmi, cirrosStartupTimeout)
+				vmi = libvmops.RunVMIAndExpectLaunch(alpineVmi, alpineStartupTimeout)
 
 				By("Finding virt-launcher pod")
 				virtlauncherPod, err := libpod.GetPodByVirtualMachineInstance(vmi, testsuite.GetTestNamespace(vmi))
@@ -193,7 +187,7 @@ var _ = Describe("[sig-compute]Guest console log", decorators.SigCompute, func()
 			})
 
 			It("it should not skip any log line even trying to flood the serial console for QOSGuaranteed VMs", decorators.Periodic, func() {
-				cirrosVmi.Spec.Domain.Resources = v1.ResourceRequirements{
+				alpineVmi.Spec.Domain.Resources = v1.ResourceRequirements{
 					Requests: k8sv1.ResourceList{
 						k8sv1.ResourceCPU:    resource.MustParse("1000m"),
 						k8sv1.ResourceMemory: resource.MustParse("256M"),
@@ -203,7 +197,7 @@ var _ = Describe("[sig-compute]Guest console log", decorators.SigCompute, func()
 						k8sv1.ResourceMemory: resource.MustParse("256M"),
 					},
 				}
-				vmi = libvmops.RunVMIAndExpectLaunch(cirrosVmi, cirrosStartupTimeout)
+				vmi = libvmops.RunVMIAndExpectLaunch(alpineVmi, alpineStartupTimeout)
 				Expect(vmi.Status.QOSClass).ToNot(BeNil())
 				Expect(*vmi.Status.QOSClass).To(Equal(k8sv1.PodQOSGuaranteed))
 
@@ -267,7 +261,7 @@ var _ = Describe("[sig-compute]Guest console log", decorators.SigCompute, func()
 
 func generateHugeLogData(vmi *v1.VirtualMachineInstance, mb int) {
 	By("Obtaining the serial console, logging in")
-	Expect(console.LoginToCirros(vmi)).To(Succeed())
+	Expect(console.LoginToAlpine(vmi)).To(Succeed())
 	Expect(console.SafeExpectBatch(vmi, []expect.Batcher{
 		&expect.BSnd{S: "echo " + testString + "\n"},
 		&expect.BExp{R: testString},

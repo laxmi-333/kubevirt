@@ -29,6 +29,7 @@ import (
 	"kubevirt.io/kubevirt/pkg/virtctl/usbredir"
 
 	"kubevirt.io/kubevirt/tests/decorators"
+	"kubevirt.io/kubevirt/tests/libvmifact"
 	"kubevirt.io/kubevirt/tests/libvmops"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -64,7 +65,7 @@ var helloMessageRemote = []byte{
 var _ = Describe("[crit:medium][vendor:cnv-qe@redhat.com][level:component][sig-compute] USB Redirection", decorators.SigCompute, func() {
 
 	var virtClient kubecli.KubevirtClient
-	const enoughMemForSafeBiosEmulation = "32Mi"
+	const enoughMemForSafeBiosEmulation = "128Mi"
 	BeforeEach(func() {
 		virtClient = kubevirt.Client()
 	})
@@ -73,7 +74,7 @@ var _ = Describe("[crit:medium][vendor:cnv-qe@redhat.com][level:component][sig-c
 
 		var vmi *v1.VirtualMachineInstance
 		BeforeEach(func() {
-			vmi = libvmi.New(libvmi.WithResourceMemory(enoughMemForSafeBiosEmulation))
+			vmi = libvmifact.NewAlpine(libvmi.WithResourceMemory(enoughMemForSafeBiosEmulation))
 			vmi = libvmops.RunVMIAndExpectLaunch(vmi, 90)
 		})
 
@@ -91,7 +92,7 @@ var _ = Describe("[crit:medium][vendor:cnv-qe@redhat.com][level:component][sig-c
 
 		BeforeEach(func() {
 			// A VMI for each test to have fresh stack on server side
-			vmi = libvmi.New(libvmi.WithResourceMemory(enoughMemForSafeBiosEmulation), withClientPassthrough())
+			vmi = libvmifact.NewAlpine(libvmi.WithResourceMemory(enoughMemForSafeBiosEmulation), withClientPassthrough())
 			vmi = libvmops.RunVMIAndExpectLaunch(vmi, 90)
 			name = vmi.ObjectMeta.Name
 			namespace = vmi.ObjectMeta.Namespace

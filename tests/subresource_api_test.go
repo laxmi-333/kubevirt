@@ -64,7 +64,7 @@ var _ = Describe("[sig-compute]Subresource Api", decorators.SigCompute, func() {
 		var vm *v1.VirtualMachine
 
 		BeforeEach(func() {
-			vm = libvmi.NewVirtualMachine(libvmifact.NewCirros())
+			vm = libvmi.NewVirtualMachine(libvmifact.NewAlpine())
 			vm, err = virtClient.VirtualMachine(testsuite.GetTestNamespace(vm)).Create(context.Background(), vm, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 		})
@@ -160,7 +160,7 @@ var _ = Describe("[sig-compute]Subresource Api", decorators.SigCompute, func() {
 		Context("with a restart endpoint", func() {
 			DescribeTable("should return an error when VM is not running", func(errMsg string, opts ...libvmi.VMOption) {
 				By("Creating VM")
-				vm := libvmi.NewVirtualMachine(libvmifact.NewGuestless(), opts...)
+				vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine(), opts...)
 				vm, err := virtClient.VirtualMachine(testsuite.GetTestNamespace(vm)).Create(context.Background(), vm, metav1.CreateOptions{})
 				Expect(err).NotTo(HaveOccurred())
 
@@ -173,7 +173,7 @@ var _ = Describe("[sig-compute]Subresource Api", decorators.SigCompute, func() {
 			)
 
 			It("[test_id:2265][posneg:negative] should return an error when VM has not been found but VMI is running", func() {
-				vmi := libvmifact.NewGuestless()
+				vmi := libvmifact.NewAlpine()
 				libvmops.RunVMIAndExpectLaunch(vmi, 60)
 
 				err := virtClient.VirtualMachine(testsuite.GetTestNamespace(vmi)).Restart(context.Background(), vmi.Name, &v1.RestartOptions{})
@@ -183,7 +183,7 @@ var _ = Describe("[sig-compute]Subresource Api", decorators.SigCompute, func() {
 
 		It("[test_id:1529]should start a VirtualMachine only once", func() {
 			By("getting a VM")
-			vm := libvmi.NewVirtualMachine(libvmifact.NewGuestless())
+			vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine())
 			vm, err := virtClient.VirtualMachine(testsuite.GetTestNamespace(vm)).Create(context.Background(), vm, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 
@@ -204,7 +204,7 @@ var _ = Describe("[sig-compute]Subresource Api", decorators.SigCompute, func() {
 
 		It("[test_id:1530]should stop a VirtualMachine only once", func() {
 			By("getting a VM")
-			vm := libvmi.NewVirtualMachine(libvmifact.NewGuestless())
+			vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine())
 			vm, err := virtClient.VirtualMachine(testsuite.GetTestNamespace(vm)).Create(context.Background(), vm, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			vm = libvmops.StartVirtualMachine(vm)
@@ -315,7 +315,7 @@ var _ = Describe("[sig-compute]Subresource Api", decorators.SigCompute, func() {
 
 			BeforeEach(func() {
 				var err error
-				vmi := libvmifact.NewCirros()
+				vmi := libvmifact.NewAlpine()
 				vm = libvmi.NewVirtualMachine(vmi, libvmi.WithRunStrategy(v1.RunStrategyAlways))
 				vm, err = virtClient.VirtualMachine(testsuite.GetTestNamespace(vmi)).Create(context.Background(), vm, metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())
@@ -483,7 +483,7 @@ var _ = Describe("[sig-compute]Subresource Api", decorators.SigCompute, func() {
 
 			Context("with existing VM", func() {
 				It("[test_id:TODO] should return unchanged VirtualMachine, if instancetype is not used", func() {
-					vm := libvmi.NewVirtualMachine(libvmifact.NewCirros())
+					vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine())
 					vm, err := virtClient.VirtualMachine(testsuite.GetTestNamespace(vm)).Create(context.Background(), vm, metav1.CreateOptions{})
 					Expect(err).ToNot(HaveOccurred())
 
@@ -494,7 +494,7 @@ var _ = Describe("[sig-compute]Subresource Api", decorators.SigCompute, func() {
 				})
 
 				DescribeTable("[test_id:TODO] should return VirtualMachine with instancetype expanded", func(matcherFn func() *v1.InstancetypeMatcher) {
-					vm := libvmi.NewVirtualMachine(libvmi.New())
+					vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine())
 					vm.Spec.Instancetype = matcherFn()
 
 					vm, err := virtClient.VirtualMachine(testsuite.GetTestNamespace(vm)).Create(context.Background(), vm, metav1.CreateOptions{})
@@ -513,7 +513,7 @@ var _ = Describe("[sig-compute]Subresource Api", decorators.SigCompute, func() {
 
 			Context("with passed VM in request", func() {
 				It("[test_id:TODO] should return unchanged VirtualMachine, if instancetype is not used", func() {
-					vm := libvmi.NewVirtualMachine(libvmifact.NewCirros())
+					vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine())
 
 					expandedVm, err := virtClient.ExpandSpec(testsuite.GetTestNamespace(vm)).ForVirtualMachine(vm)
 					Expect(err).ToNot(HaveOccurred())
@@ -521,7 +521,7 @@ var _ = Describe("[sig-compute]Subresource Api", decorators.SigCompute, func() {
 				})
 
 				DescribeTable("[test_id:TODO] should return VirtualMachine with instancetype expanded", func(matcherFn func() *v1.InstancetypeMatcher) {
-					vm := libvmi.NewVirtualMachine(libvmi.New())
+					vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine())
 					vm.Spec.Instancetype = matcherFn()
 
 					expandedVm, err := virtClient.ExpandSpec(testsuite.GetTestNamespace(vm)).ForVirtualMachine(vm)
@@ -534,7 +534,7 @@ var _ = Describe("[sig-compute]Subresource Api", decorators.SigCompute, func() {
 				)
 
 				DescribeTable("[test_id:TODO] should fail, if referenced instancetype does not exist", func(matcher *v1.InstancetypeMatcher) {
-					vm := libvmi.NewVirtualMachine(libvmi.New())
+					vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine())
 					vm.Spec.Instancetype = matcher
 
 					_, err := virtClient.ExpandSpec(testsuite.GetTestNamespace(vm)).ForVirtualMachine(vm)
@@ -546,7 +546,7 @@ var _ = Describe("[sig-compute]Subresource Api", decorators.SigCompute, func() {
 				)
 
 				DescribeTable("[test_id:TODO] should fail, if instancetype expansion hits a conflict", func(matcherFn func() *v1.InstancetypeMatcher) {
-					vm := libvmi.NewVirtualMachine(libvmifact.NewCirros())
+					vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine())
 					vm.Spec.Instancetype = matcherFn()
 
 					_, err := virtClient.ExpandSpec(testsuite.GetTestNamespace(vm)).ForVirtualMachine(vm)
@@ -558,7 +558,7 @@ var _ = Describe("[sig-compute]Subresource Api", decorators.SigCompute, func() {
 				)
 
 				DescribeTable("[test_id:TODO] should fail, if VM and endpoint namespace are different", func(matcherFn func() *v1.InstancetypeMatcher) {
-					vm := libvmi.NewVirtualMachine(libvmifact.NewCirros())
+					vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine())
 					vm.Spec.Instancetype = matcherFn()
 					vm.Namespace = "madethisup"
 
@@ -626,8 +626,8 @@ var _ = Describe("[sig-compute]Subresource Api", decorators.SigCompute, func() {
 
 			Context("with existing VM", func() {
 				It("[test_id:TODO] should return unchanged VirtualMachine, if preference is not used", func() {
-					// Using NewCirros() here to have some data in spec.
-					vm := libvmi.NewVirtualMachine(libvmifact.NewCirros())
+					// Using NewAlpine() here to have some data in spec.
+					vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine())
 
 					vm, err := virtClient.VirtualMachine(testsuite.GetTestNamespace(vm)).Create(context.Background(), vm, metav1.CreateOptions{})
 					Expect(err).ToNot(HaveOccurred())
@@ -639,8 +639,8 @@ var _ = Describe("[sig-compute]Subresource Api", decorators.SigCompute, func() {
 				})
 
 				DescribeTable("[test_id:TODO] should return VirtualMachine with preference expanded", func(matcherFn func() *v1.PreferenceMatcher) {
-					// Using NewCirros() here to have some data in spec.
-					vm := libvmi.NewVirtualMachine(libvmifact.NewCirros())
+					// Using NewAlpine() here to have some data in spec.
+					vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine())
 					vm.Spec.Preference = matcherFn()
 
 					vm, err := virtClient.VirtualMachine(testsuite.GetTestNamespace(vm)).Create(context.Background(), vm, metav1.CreateOptions{})
@@ -659,8 +659,8 @@ var _ = Describe("[sig-compute]Subresource Api", decorators.SigCompute, func() {
 
 			Context("with passed VM in request", func() {
 				It("[test_id:TODO] should return unchanged VirtualMachine, if preference is not used", func() {
-					// Using NewCirros() here to have some data in spec.
-					vm := libvmi.NewVirtualMachine(libvmifact.NewCirros())
+					// Using NewAlpine() here to have some data in spec.
+					vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine())
 
 					expandedVm, err := virtClient.ExpandSpec(testsuite.GetTestNamespace(vm)).ForVirtualMachine(vm)
 					Expect(err).ToNot(HaveOccurred())
@@ -668,8 +668,8 @@ var _ = Describe("[sig-compute]Subresource Api", decorators.SigCompute, func() {
 				})
 
 				DescribeTable("[test_id:TODO] should return VirtualMachine with preference expanded", func(matcherFn func() *v1.PreferenceMatcher) {
-					// Using NewCirros() here to have some data in spec.
-					vm := libvmi.NewVirtualMachine(libvmifact.NewCirros())
+					// Using NewAlpine() here to have some data in spec.
+					vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine())
 					vm.Spec.Preference = matcherFn()
 
 					expandedVm, err := virtClient.ExpandSpec(testsuite.GetTestNamespace(vm)).ForVirtualMachine(vm)
@@ -682,8 +682,8 @@ var _ = Describe("[sig-compute]Subresource Api", decorators.SigCompute, func() {
 				)
 
 				DescribeTable("[test_id:TODO] should fail, if referenced preference does not exist", func(matcher *v1.PreferenceMatcher) {
-					// Using NewCirros() here to have some data in spec.
-					vm := libvmi.NewVirtualMachine(libvmifact.NewCirros())
+					// Using NewAlpine() here to have some data in spec.
+					vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine())
 					vm.Spec.Preference = matcher
 
 					_, err := virtClient.ExpandSpec(testsuite.GetTestNamespace(vm)).ForVirtualMachine(vm)

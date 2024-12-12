@@ -82,7 +82,7 @@ var _ = SIGDescribe("[Serial]Backend Storage", Serial, func() {
 		config.UpdateKubeVirtConfigValueAndWait(kv.Spec.Configuration)
 
 		By("Creating a VMI with persistent TPM")
-		vmi := libvmifact.NewCirros(libnet.WithMasqueradeNetworking())
+		vmi := libvmifact.NewAlpine(libnet.WithMasqueradeNetworking())
 		vmi.Spec.Domain.Devices.TPM = &v1.TPMDevice{Persistent: pointer.P(true)}
 		vmi = libvmops.RunVMIAndExpectLaunch(vmi, 60)
 

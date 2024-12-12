@@ -93,7 +93,7 @@ var _ = Describe("[Serial][sig-monitoring]Monitoring", Serial, decorators.SigMon
 	Context("Migration Alerts", decorators.SigComputeMigrations, func() {
 		PIt("KubeVirtVMIExcessiveMigrations should be triggered when a VMI has been migrated more than 12 times during the last 24 hours", func() {
 			By("Starting the VirtualMachineInstance")
-			vmi := libvmi.New(libnet.WithMasqueradeNetworking(), libvmi.WithResourceMemory("2Mi"))
+			vmi := libvmifact.NewAlpine(libnet.WithMasqueradeNetworking(), libvmi.WithResourceMemory("128Mi"))
 			vmi = libvmops.RunVMIAndExpectLaunch(vmi, 240)
 
 			By("Migrating the VMI 13 times")
@@ -174,7 +174,7 @@ var _ = Describe("[Serial][sig-monitoring]Monitoring", Serial, decorators.SigMon
 	Context("Deprecation Alerts", decorators.SigComputeMigrations, func() {
 		It("KubeVirtDeprecatedAPIRequested should be triggered when a deprecated API is requested", func() {
 			By("Creating a VMI with deprecated API version")
-			vmi := libvmifact.NewCirros()
+			vmi := libvmifact.NewAlpine()
 			vmi.APIVersion = "v1alpha3"
 			vmi.Namespace = testsuite.GetTestNamespace(vmi)
 			vmi, err := virtClient.VirtualMachineInstance(vmi.Namespace).Create(context.Background(), vmi, metav1.CreateOptions{})

@@ -101,7 +101,7 @@ var _ = Describe("[sig-compute]oc/kubectl integration", decorators.SigCompute, f
 		BeforeEach(func() {
 			virtCli = kubevirt.Client()
 
-			vm = libvmi.NewVirtualMachine(libvmifact.NewCirros(
+			vm = libvmi.NewVirtualMachine(libvmifact.NewAlpine(
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
 			), libvmi.WithRunStrategy(v1.RunStrategyAlways))
@@ -173,7 +173,7 @@ var _ = Describe("[sig-compute]oc/kubectl integration", decorators.SigCompute, f
 
 		Context("'kubectl get vmim'", func() {
 			It("print the expected columns and their corresponding values", func() {
-				vmi := libvmifact.NewCirros(
+				vmi := libvmifact.NewAlpine(
 					libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 					libvmi.WithNetwork(v1.DefaultPodNetwork()),
 				)
@@ -181,7 +181,7 @@ var _ = Describe("[sig-compute]oc/kubectl integration", decorators.SigCompute, f
 				vmi = libvmops.RunVMIAndExpectLaunch(vmi, libmigration.MigrationWaitTime)
 
 				By("Checking that the VirtualMachineInstance console has expected output")
-				Expect(console.LoginToCirros(vmi)).To(Succeed())
+				Expect(console.LoginToAlpine(vmi)).To(Succeed())
 
 				By("creating the migration")
 				migration := libmigration.New(vmi.Name, vmi.Namespace)
@@ -231,7 +231,7 @@ var _ = Describe("[sig-compute]oc/kubectl integration", decorators.SigCompute, f
 		)
 
 		It("oc/kubectl logs <vmi-pod> return default container log", func() {
-			vm = libvmifact.NewCirros()
+			vm = libvmifact.NewAlpine()
 			vm = libvmops.RunVMIAndExpectLaunch(vm, 30)
 
 			k8sClient := clientcmd.GetK8sCmdClient()

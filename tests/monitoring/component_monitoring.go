@@ -235,7 +235,7 @@ var _ = Describe("[Serial][sig-monitoring]Component Monitoring", Serial, decorat
 			err = virtClient.RbacV1().ClusterRoleBindings().Delete(context.Background(), "kubevirt-controller", metav1.DeleteOptions{})
 			Expect(err).ToNot(HaveOccurred())
 
-			vmi := libvmifact.NewGuestless()
+			vmi := libvmifact.NewAlpine()
 
 			Eventually(func(g Gomega) {
 				_, _ = virtClient.VirtualMachineInstance(testsuite.NamespaceTestDefault).Create(context.Background(), vmi, metav1.CreateOptions{})
@@ -250,7 +250,7 @@ var _ = Describe("[Serial][sig-monitoring]Component Monitoring", Serial, decorat
 			err = virtClient.RbacV1().ClusterRoleBindings().Delete(context.Background(), "kubevirt-handler", metav1.DeleteOptions{})
 			Expect(err).ToNot(HaveOccurred())
 
-			vmi := libvmifact.NewGuestless()
+			vmi := libvmifact.NewAlpine()
 
 			Eventually(func(g Gomega) {
 				_, _ = virtClient.VirtualMachineInstance(testsuite.NamespaceTestDefault).Create(context.Background(), vmi, metav1.CreateOptions{})

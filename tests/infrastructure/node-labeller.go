@@ -23,6 +23,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -38,8 +39,10 @@ import (
 	"kubevirt.io/client-go/kubecli"
 
 	"kubevirt.io/kubevirt/pkg/libvmi"
+	"kubevirt.io/kubevirt/pkg/util"
 	nodelabellerutil "kubevirt.io/kubevirt/pkg/virt-handler/node-labeller/util"
 	"kubevirt.io/kubevirt/tests/events"
+	"kubevirt.io/kubevirt/tests/framework/checks"
 	"kubevirt.io/kubevirt/tests/framework/kubevirt"
 	"kubevirt.io/kubevirt/tests/libinfra"
 	"kubevirt.io/kubevirt/tests/libkubevirt"
@@ -192,7 +195,15 @@ var _ = DescribeInfra("Node-labeller", func() {
 				errorMessageTemplate := "node " + node.Name + " does not contain %s label"
 				Expect(cpuModelLabelPresent).To(BeTrue(), fmt.Sprintf(errorMessageTemplate, "cpu"))
 				Expect(cpuFeatureLabelPresent).To(BeTrue(), fmt.Sprintf(errorMessageTemplate, "feature"))
-				Expect(hyperVLabelPresent).To(BeTrue(), fmt.Sprintf(errorMessageTemplate, "hyperV"))
+				fmt.Println("Checking Runtime Goarch,", runtime.GOARCH)
+				arch := util.TranslateBuildArch()
+				if !checks.IsS390X(arch) {
+					fmt.Println("Based on S390x")
+					Expect(hyperVLabelPresent).To(BeTrue(), fmt.Sprintf(errorMessageTemplate, "hyperV"))
+				} else {
+					Expect(hyperVLabelPresent).To(BeFalse(), fmt.Sprintf(errorMessageTemplate, "hyperV"))
+				}
+
 				Expect(hostCpuModelPresent).To(BeTrue(), fmt.Sprintf(errorMessageTemplate, "host cpu model"))
 				Expect(hostCpuRequiredFeaturesPresent).To(BeTrue(), fmt.Sprintf(errorMessageTemplate, "host cpu required featuers"))
 			}

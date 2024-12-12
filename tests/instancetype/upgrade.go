@@ -130,7 +130,7 @@ var _ = Describe("[crit:medium][vendor:cnv-qe@redhat.com][level:component][sig-c
 		Expect(err).ToNot(HaveOccurred())
 
 		vm = libvmi.NewVirtualMachine(
-			libvmifact.NewGuestless(),
+			libvmifact.NewAlpine(),
 			libvmi.WithInstancetype(instancetype.Name),
 			libvmi.WithPreference(preference.Name),
 		)

@@ -83,7 +83,7 @@ var _ = Describe("[Serial][sig-compute]SecurityFeatures", Serial, decorators.Sig
 				config.SELinuxLauncherType = "container_t"
 				kvconfig.UpdateKubeVirtConfigValueAndWait(*config)
 
-				vmi = libvmifact.NewCirros()
+				vmi = libvmifact.NewAlpine()
 
 				// VMIs with selinuxLauncherType container_t cannot have network interfaces, since that requires
 				// the `virt_launcher.process` selinux context

@@ -3,6 +3,7 @@ package virtctl
 import (
 	"context"
 	"crypto/ecdsa"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -67,9 +68,11 @@ var _ = Describe("[sig-compute][virtctl]SCP", decorators.SigCompute, func() {
 
 			// The virtctl binary needs to run here because of the way local SCP client wrapping works.
 			// Running the command through NewRepeatableVirtctlCommand does not suffice.
-			_, cmd, err := clientcmd.CreateCommandWithNS(testsuite.GetTestNamespace(nil), "virtctl", args...)
+			cmdString, cmd, err := clientcmd.CreateCommandWithNS(testsuite.GetTestNamespace(nil), "virtctl", args...)
+			fmt.Println("cmdString", cmdString)
 			Expect(err).ToNot(HaveOccurred())
 			out, err := cmd.CombinedOutput()
+			fmt.Println("out,err", string(out), err)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(out).ToNot(BeEmpty())
 		}
@@ -89,13 +92,13 @@ var _ = Describe("[sig-compute][virtctl]SCP", decorators.SigCompute, func() {
 
 	DescribeTable("should copy a local file back and forth", func(copyFn func(string, string, bool)) {
 		By("injecting a SSH public key into a VMI")
-		vmi := libvmifact.NewAlpineWithTestTooling(
+		vmi := libvmifact.NewFedora(
 			libvmi.WithCloudInitNoCloud(libvmici.WithNoCloudUserData(libssh.RenderUserDataWithKey(pub))),
 		)
 		vmi, err := virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(nil)).Create(context.Background(), vmi, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred())
 
-		vmi = libwait.WaitUntilVMIReady(vmi, console.LoginToAlpine)
+		vmi = libwait.WaitUntilVMIReady(vmi, console.LoginToFedora)
 
 		By("copying a file to the VMI")
 		copyFn(keyFile, vmi.Name+":"+"./keyfile", false)
@@ -114,13 +117,13 @@ var _ = Describe("[sig-compute][virtctl]SCP", decorators.SigCompute, func() {
 
 	DescribeTable("should copy a local directory back and forth", func(copyFn func(string, string, bool)) {
 		By("injecting a SSH public key into a VMI")
-		vmi := libvmifact.NewAlpineWithTestTooling(
+		vmi := libvmifact.NewFedora(
 			libvmi.WithCloudInitNoCloud(libvmici.WithNoCloudUserData(libssh.RenderUserDataWithKey(pub))),
 		)
 		vmi, err := virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(nil)).Create(context.Background(), vmi, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred())
 
-		vmi = libwait.WaitUntilVMIReady(vmi, console.LoginToAlpine)
+		vmi = libwait.WaitUntilVMIReady(vmi, console.LoginToFedora)
 
 		By("creating a few random files")
 		copyFromDir := filepath.Join(GinkgoT().TempDir(), "sourcedir")

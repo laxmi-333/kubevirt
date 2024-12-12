@@ -42,7 +42,7 @@ var _ = Describe("[sig-compute][Serial]NUMA", Serial, decorators.SigCompute, fun
 	It("[test_id:7299] topology should be mapped to the guest and hugepages should be allocated", decorators.RequiresTwoWorkerNodesWithCPUManager, func() {
 		checks.SkipTestIfNotEnoughNodesWithCPUManagerWith2MiHugepages(1)
 		var err error
-		cpuVMI := libvmifact.NewCirros()
+		cpuVMI := libvmifact.NewAlpine()
 		cpuVMI.Spec.Domain.Resources.Requests[k8sv1.ResourceMemory] = resource.MustParse("128Mi")
 		cpuVMI.Spec.Domain.CPU = &v1.CPU{
 			Cores:                 3,
@@ -101,7 +101,7 @@ var _ = Describe("[sig-compute][Serial]NUMA", Serial, decorators.SigCompute, fun
 		Expect(mappings).To(HaveLen(len(domSpec.NUMATune.MemNodes)))
 
 		By("checking if the guest came up and is healthy")
-		Expect(console.LoginToCirros(cpuVMI)).To(Succeed())
+		Expect(console.LoginToAlpine(cpuVMI)).To(Succeed())
 	})
 
 })

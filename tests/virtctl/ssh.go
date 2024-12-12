@@ -82,13 +82,13 @@ var _ = Describe("[sig-compute][virtctl]SSH", decorators.SigCompute, func() {
 
 	DescribeTable("should succeed to execute a command on the VM", func(cmdFn func(string)) {
 		By("injecting a SSH public key into a VMI")
-		vmi := libvmifact.NewAlpineWithTestTooling(
+		vmi := libvmifact.NewFedora(
 			libvmi.WithCloudInitNoCloud(libvmici.WithNoCloudUserData(libssh.RenderUserDataWithKey(pub))),
 		)
 		vmi, err := virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(nil)).Create(context.Background(), vmi, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred())
 
-		vmi = libwait.WaitUntilVMIReady(vmi, console.LoginToAlpine)
+		vmi = libwait.WaitUntilVMIReady(vmi, console.LoginToFedora)
 
 		By("ssh into the VM")
 		cmdFn(vmi.Name)

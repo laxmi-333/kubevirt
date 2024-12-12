@@ -371,7 +371,7 @@ var _ = Describe("[rfe_id:609][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 			time.Sleep(3 * time.Second)
 
 			By("Creating VMI with 128M")
-			vmi = libvmi.New(
+			vmi = libvmifact.NewAlpine(
 				libvmi.WithLabel(overrideKey, overrideFlavor),
 				libvmi.WithResourceMemory("128M"),
 			)
@@ -462,8 +462,8 @@ var _ = Describe("[rfe_id:609][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 				},
 			}
 
-			vmiWin7 = libvmi.New(libvmi.WithLabel(labelKey, win7Label))
-			vmiWin10 = libvmi.New(libvmi.WithLabel(labelKey, win10Label))
+			vmiWin7 = libvmifact.NewAlpine(libvmi.WithLabel(labelKey, win7Label))
+			vmiWin10 = libvmifact.NewAlpine(libvmi.WithLabel(labelKey, win10Label))
 		})
 
 		It("[test_id:726] Should match multiple VMs via MatchExpression", func() {
@@ -523,8 +523,8 @@ var _ = Describe("[rfe_id:609][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 			}
 
 			// The actual type of machine is unimportant here. This test is about the label
-			vmiWin7 = libvmi.New(libvmi.WithLabel(labelKey, labelValue), libvmi.WithResourceMemory("1Mi"))
-			vmiWin10 = libvmi.New(libvmi.WithLabel(labelKey, labelValue), libvmi.WithResourceMemory("1Mi"))
+			vmiWin7 = libvmifact.NewAlpine(libvmi.WithLabel(labelKey, labelValue), libvmi.WithResourceMemory("128Mi"))
+			vmiWin10 = libvmifact.NewAlpine(libvmi.WithLabel(labelKey, labelValue), libvmi.WithResourceMemory("128Mi"))
 
 			annotationVal = v1.GroupVersion.String()
 		})

@@ -230,7 +230,7 @@ var _ = Describe("[sig-compute] Hyper-V enlightenments", decorators.SigCompute, 
 			}
 
 			for _, label := range supportedKVMInfoFeature {
-				vmi := libvmifact.NewCirros()
+				vmi := libvmifact.NewAlpine()
 				features := enableHyperVInVMI(label)
 				vmi.Spec.Domain.Features = &v1.Features{
 					Hyperv: &features,
@@ -247,7 +247,7 @@ var _ = Describe("[sig-compute] Hyper-V enlightenments", decorators.SigCompute, 
 
 		DescribeTable("[Serial] the vmi with EVMCS HyperV feature should have correct HyperV and cpu features auto filled", Serial, func(featureState *v1.FeatureState) {
 			config.EnableFeatureGate(virtconfig.HypervStrictCheckGate)
-			vmi := libvmifact.NewCirros()
+			vmi := libvmifact.NewAlpine()
 			vmi.Spec.Domain.Features = &v1.Features{
 				Hyperv: &v1.FeatureHyperv{
 					EVMCS: featureState,
@@ -283,7 +283,7 @@ var _ = Describe("[sig-compute] Hyper-V enlightenments", decorators.SigCompute, 
 
 	Context("VMI with HyperV passthrough", func() {
 		It("should be usable and non-migratable", func() {
-			vmi := libvmifact.NewCirros(withHypervPassthrough())
+			vmi := libvmifact.NewAlpine(withHypervPassthrough())
 			vmi = libvmops.RunVMIAndExpectLaunch(vmi, 60)
 
 			domSpec, err := tests.GetRunningVMIDomainSpec(vmi)
