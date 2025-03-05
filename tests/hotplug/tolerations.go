@@ -61,7 +61,7 @@ var _ = Describe("[sig-compute]VM Tolerations", decorators.SigCompute, decorator
 		It("should successfully live update tolerations", func() {
 
 			By("Creating a running VM")
-			vmi := libvmifact.NewGuestless()
+			vmi := libvmifact.NewAlpine()
 			vm := libvmi.NewVirtualMachine(vmi, libvmi.WithRunStrategy(v1.RunStrategyAlways))
 
 			vm, err := virtClient.VirtualMachine(testsuite.GetTestNamespace(nil)).Create(context.Background(), vm, metav1.CreateOptions{})

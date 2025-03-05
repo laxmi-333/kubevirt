@@ -209,7 +209,7 @@ var _ = SIGMigrationDescribe("VM Post Copy Live Migration", decorators.RequiresT
 				By("creating a large VM with RunStrategyRerunOnFailure")
 				vmi := libvmifact.NewFedora(
 					libnet.WithMasqueradeNetworking(),
-					libvmi.WithResourceMemory("3Gi"),
+					libvmi.WithResourceMemory("1024Mi"),
 					libvmi.WithRng(),
 					libvmi.WithNamespace(testsuite.NamespaceTestDefault),
 				)

@@ -125,7 +125,7 @@ var _ = Describe("[sig-compute]CPU Hotplug", decorators.SigCompute, decorators.S
 				maxSockets uint32 = 2
 			)
 
-			vmi := libvmifact.NewAlpineWithTestTooling(libnet.WithMasqueradeNetworking())
+			vmi := libvmifact.NewFedora(libnet.WithMasqueradeNetworking())
 			vmi.Namespace = testsuite.GetTestNamespace(vmi)
 			vmi.Spec.Domain.CPU = &v1.CPU{
 				Sockets:    1,
@@ -316,7 +316,7 @@ var _ = Describe("[sig-compute]CPU Hotplug", decorators.SigCompute, decorators.S
 
 	Context("Abort CPU change", func() {
 		It("should cancel the automated workload update", func() {
-			vmi := libvmifact.NewAlpineWithTestTooling(libnet.WithMasqueradeNetworking())
+			vmi := libvmifact.NewFedora(libnet.WithMasqueradeNetworking())
 			vmi.Namespace = testsuite.GetTestNamespace(vmi)
 			vmi.Spec.Domain.CPU = &v1.CPU{
 				Sockets:    1,
