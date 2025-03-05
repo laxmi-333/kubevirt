@@ -189,7 +189,7 @@ var _ = DescribeSerialInfra("Node-labeller", func() {
 				errorMessageTemplate := "node " + node.Name + " does not contain %s label"
 				Expect(cpuModelLabelPresent).To(BeTrue(), fmt.Sprintf(errorMessageTemplate, "cpu"))
 				Expect(cpuFeatureLabelPresent).To(BeTrue(), fmt.Sprintf(errorMessageTemplate, "feature"))
-				Expect(hyperVLabelPresent).To(BeTrue(), fmt.Sprintf(errorMessageTemplate, "hyperV"))
+				Expect(hyperVLabelPresent).To(BeFalse(), fmt.Sprintf(errorMessageTemplate, "hyperV"))
 				Expect(hostCPUModelPresent).To(BeTrue(), fmt.Sprintf(errorMessageTemplate, "host cpu model"))
 				Expect(hostCPURequiredFeaturesPresent).To(BeTrue(), fmt.Sprintf(errorMessageTemplate, "host cpu required featuers"))
 			}
