@@ -51,7 +51,7 @@ var _ = DescribeSerialInfra("Start a VirtualMachineInstance", func() {
 
 			By("Starting a new VirtualMachineInstance")
 			vmi, err := virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(nil)).Create(
-				context.Background(), libvmifact.NewGuestless(), metav1.CreateOptions{})
+				context.Background(), libvmifact.NewAlpine(), metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			libwait.WaitForSuccessfulVMIStart(vmi)
 		})

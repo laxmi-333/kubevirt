@@ -50,7 +50,7 @@ var _ = VirtctlDescribe("[sig-compute]VNC", decorators.SigCompute, decorators.Wg
 
 	BeforeEach(func() {
 		var err error
-		vmi = libvmifact.NewGuestless()
+		vmi = libvmifact.NewAlpine()
 		vmi, err = kubevirt.Client().VirtualMachineInstance(testsuite.GetTestNamespace(vmi)).
 			Create(context.Background(), vmi, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred())
@@ -108,7 +108,7 @@ var _ = VirtctlDescribe("[sig-compute]VNC", decorators.SigCompute, decorators.Wg
 		// while it is 1280x800 for the virtio device used on arm64 and s390x.
 		size := image.Point{720, 400}
 		if vmi.Spec.Architecture == "arm64" || vmi.Spec.Architecture == "s390x" {
-			size = image.Point{1280, 800}
+			size = image.Point{640, 480}
 		}
 
 		By("gathering screenshots until we are past the first boot screen and see the expected resolution")

@@ -123,7 +123,7 @@ var _ = SIGDescribe("[rfe_id:1177][crit:medium] VirtualMachine", func() {
 
 	Context("with paused vmi", func() {
 		It("[test_id:4598][test_id:3060]should signal paused/unpaused state with condition", decorators.Conformance, func() {
-			vm := libvmi.NewVirtualMachine(libvmifact.NewCirros(
+			vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine(
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork())),
 				libvmi.WithRunStrategy(v1.RunStrategyAlways))
@@ -141,7 +141,7 @@ var _ = SIGDescribe("[rfe_id:1177][crit:medium] VirtualMachine", func() {
 		})
 
 		It("[test_id:3085]should be stopped successfully", decorators.Conformance, func() {
-			vm := libvmi.NewVirtualMachine(libvmifact.NewCirros(
+			vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine(
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
 				withStartStrategy(pointer.P(v1.StartStrategyPaused))),
@@ -167,7 +167,7 @@ var _ = SIGDescribe("[rfe_id:1177][crit:medium] VirtualMachine", func() {
 		})
 
 		It("[test_id:3229]should gracefully handle being started again", func() {
-			vm := libvmi.NewVirtualMachine(libvmifact.NewCirros(
+			vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine(
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
 				withStartStrategy(pointer.P(v1.StartStrategyPaused))),
@@ -183,7 +183,7 @@ var _ = SIGDescribe("[rfe_id:1177][crit:medium] VirtualMachine", func() {
 		})
 
 		It("[test_id:3226]should be restarted successfully into unpaused state", func() {
-			vm := libvmi.NewVirtualMachine(libvmifact.NewCirros(
+			vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine(
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork())),
 				libvmi.WithRunStrategy(v1.RunStrategyAlways),
