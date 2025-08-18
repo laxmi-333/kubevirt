@@ -46,6 +46,7 @@ import (
 	"kubevirt.io/kubevirt/tests/framework/kubevirt"
 	"kubevirt.io/kubevirt/tests/framework/matcher"
 	"kubevirt.io/kubevirt/tests/libstorage"
+	"kubevirt.io/kubevirt/tests/libvmifact"
 	"kubevirt.io/kubevirt/tests/libwait"
 	"kubevirt.io/kubevirt/tests/testsuite"
 )
@@ -116,7 +117,7 @@ var _ = Describe(SIG("[sig-storage]ImageUpload", decorators.SigStorage, Serial, 
 			validateFn(targetName, sc)
 
 			By("Start VMI")
-			vmi := libvmi.New(
+			vmi := libvmifact.NewAlpine(
 				libvmi.WithResourceMemory("256Mi"),
 				diskFn("disk0", targetName),
 			)

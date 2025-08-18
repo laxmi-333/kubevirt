@@ -79,6 +79,15 @@ func NewAlpine(opts ...libvmi.Option) *kvirtv1.VirtualMachineInstance {
 	return libvmi.New(alpineOpts...)
 }
 
+func NewAlpineWithoutDefaultMemory(opts ...libvmi.Option) *kvirtv1.VirtualMachineInstance {
+	alpineOpts := []libvmi.Option{
+		libvmi.WithContainerDisk("disk0", cd.ContainerDiskFor(cd.ContainerDiskAlpine)),
+		libvmi.WithRng(),
+	}
+	alpineOpts = append(alpineOpts, opts...)
+	return libvmi.New(alpineOpts...)
+}
+
 func NewAlpineWithTestTooling(opts ...libvmi.Option) *kvirtv1.VirtualMachineInstance {
 	alpineMemory := cirrosMemory
 	alpineOpts := []libvmi.Option{
