@@ -56,7 +56,7 @@ var _ = Describe(SIG("VMIDefaults", func() {
 	Context("Disk defaults", func() {
 		BeforeEach(func() {
 			// create VMI with missing disk target
-			vmi = libvmi.New(
+			vmi = libvmifact.NewAlpine(
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
 				libvmi.WithResourceMemory("8192Ki"),
@@ -89,7 +89,7 @@ var _ = Describe(SIG("VMIDefaults", func() {
 			newVMI, err := virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(nil)).Get(context.Background(), vmi.Name, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(newVMI.Spec.Domain.Devices.Disks).To(HaveLen(1))
+			Expect(newVMI.Spec.Domain.Devices.Disks).To(HaveLen(2))
 			Expect(newVMI.Spec.Domain.Devices.Disks[0].Name).To(Equal(vmi.Spec.Volumes[0].Name))
 			Expect(newVMI.Spec.Domain.Devices.Disks[0].Disk).ToNot(BeNil(), "DiskTarget should not be nil")
 			Expect(newVMI.Spec.Domain.Devices.Disks[0].Disk.Bus).ToNot(BeEmpty(), "DiskTarget's bus should not be empty")
@@ -102,7 +102,7 @@ var _ = Describe(SIG("VMIDefaults", func() {
 
 		BeforeEach(func() {
 			// create VMI with missing disk target
-			vmi = libvmi.New(
+			vmi = libvmifact.NewAlpine(
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
 				libvmi.WithResourceMemory("128Mi"),
@@ -125,16 +125,19 @@ var _ = Describe(SIG("VMIDefaults", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			expected := api.MemBalloon{
-				Model: "virtio-non-transitional",
+				Model: "virtio",
 				Stats: &api.Stats{
 					Period: 10,
 				},
 				Address: &api.Address{
-					Type:     api.AddressPCI,
-					Domain:   "0x0000",
-					Bus:      "0x07",
-					Slot:     "0x00",
-					Function: "0x0",
+					Type:     api.AddressCCW,
+					Domain:   "",
+					Bus:      "",
+					Slot:     "",
+					Function: "",
+					CSSID:    "0xfe",
+					SSID:     "0x0",
+					DevNo:    "0x0007",
 				},
 			}
 			if kvConfiguration.VirtualMachineOptions != nil && kvConfiguration.VirtualMachineOptions.DisableFreePageReporting != nil {
@@ -172,26 +175,32 @@ var _ = Describe(SIG("VMIDefaults", func() {
 			Expect(*domain.Devices.Ballooning).To(Equal(expected))
 		},
 			Entry("[test_id:4557]with period 12", uint32(12), api.MemBalloon{
-				Model: "virtio-non-transitional",
+				Model: "virtio",
 				Stats: &api.Stats{
 					Period: 12,
 				},
 				Address: &api.Address{
-					Type:     api.AddressPCI,
-					Domain:   "0x0000",
-					Bus:      "0x07",
-					Slot:     "0x00",
-					Function: "0x0",
+					Type:     api.AddressCCW,
+					Domain:   "",
+					Bus:      "",
+					Slot:     "",
+					Function: "",
+					CSSID:    "0xfe",
+					SSID:     "0x0",
+					DevNo:    "0x0007",
 				},
 			}),
 			Entry("[test_id:4558]with period 0", uint32(0), api.MemBalloon{
-				Model: "virtio-non-transitional",
+				Model: "virtio",
 				Address: &api.Address{
-					Type:     api.AddressPCI,
-					Domain:   "0x0000",
-					Bus:      "0x07",
-					Slot:     "0x00",
-					Function: "0x0",
+					Type:     api.AddressCCW,
+					Domain:   "",
+					Bus:      "",
+					Slot:     "",
+					Function: "",
+					CSSID:    "0xfe",
+					SSID:     "0x0",
+					DevNo:    "0x0007",
 				},
 			}),
 		)
@@ -223,7 +232,7 @@ var _ = Describe(SIG("VMIDefaults", func() {
 		It("[test_id:TODO]Should be set in VirtualMachineInstance", func() {
 
 			By("Creating a VirtualMachineInstance with an input device without a bus or type set")
-			vmi = libvmifact.NewCirros()
+			vmi = libvmifact.NewAlpine()
 			vmi.Spec.Domain.Devices.Inputs = append(vmi.Spec.Domain.Devices.Inputs, v1.Input{
 				Name: "foo-1",
 			})
@@ -240,7 +249,7 @@ var _ = Describe(SIG("VMIDefaults", func() {
 
 		It("[test_id:TODO]Should be applied to a device added by AutoattachInputDevice", func() {
 			By("Creating a VirtualMachine with AutoattachInputDevice enabled")
-			vm := libvmi.NewVirtualMachine(libvmifact.NewCirros(), libvmi.WithRunStrategy(v1.RunStrategyAlways))
+			vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine(), libvmi.WithRunStrategy(v1.RunStrategyAlways))
 			vm.Spec.Template.Spec.Domain.Devices.AutoattachInputDevice = pointer.P(true)
 			vm, err := virtClient.VirtualMachine(testsuite.GetTestNamespace(nil)).Create(context.Background(), vm, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())

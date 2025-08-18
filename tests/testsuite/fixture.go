@@ -58,6 +58,8 @@ const (
 	defaultEventuallyPollingInterval = 1 * time.Second
 	defaultKubevirtReadyTimeout      = 5 * time.Minute
 	defaultKWOKNodeCount             = 100
+	ArchAMD64                        = "amd64"
+	ArchS390x                        = "s390x"
 )
 
 const HostPathBase = "/tmp/hostImages"
