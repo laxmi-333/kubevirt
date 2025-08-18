@@ -42,11 +42,11 @@ var _ = Describe(compute.SIG("Reset subresource", func() {
 		const vmiLaunchTimeout = 360
 
 		It("should succeed", func() {
-			vmi := libvmops.RunVMIAndExpectLaunch(libvmifact.NewAlpineWithTestTooling(), vmiLaunchTimeout)
+			vmi := libvmops.RunVMIAndExpectLaunch(libvmifact.NewFedora(), vmiLaunchTimeout)
 			oldUID := vmi.UID
 
 			By("Checking that the VirtualMachineInstance console has expected output")
-			Expect(console.LoginToAlpine(vmi)).To(Succeed())
+			Expect(console.LoginToFedora(vmi)).To(Succeed())
 
 			By("Store boot time pre and post reset")
 			cmd := "cat /proc/stat | grep btime"
@@ -56,7 +56,7 @@ var _ = Describe(compute.SIG("Reset subresource", func() {
 			err = kubevirt.Client().VirtualMachineInstance(testsuite.GetTestNamespace(vmi)).Reset(context.Background(), vmi.Name)
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(console.LoginToAlpine(vmi)).To(Succeed())
+			Expect(console.LoginToFedora(vmi)).To(Succeed())
 			bTimePostReset, err := console.RunCommandAndStoreOutput(vmi, cmd, time.Second*30)
 			Expect(err).ToNot(HaveOccurred())
 
