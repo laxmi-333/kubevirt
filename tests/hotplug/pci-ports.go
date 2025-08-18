@@ -53,14 +53,14 @@ var _ = Describe("[sig-compute]VM Hotplug PCI Port Allocation", decorators.SigCo
 					libvmi.WithEmptyDisk(fmt.Sprintf("emptydisk%d", i), v1.VirtIO, resource.MustParse("10Mi")),
 				)
 			}
-			vmi := libvmifact.NewCirros(options...)
+			vmi := libvmifact.NewFedora(options...)
 			vmi, err := virtClient.VirtualMachineInstance(testsuite.NamespaceTestDefault).Create(context.Background(), vmi, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 
 			totalPorts := cirrosDefaultPortsUsed + additionalDevs + expectedFreePorts
 			By(fmt.Sprintf("Expecting VM to have %d total ports", totalPorts))
 
-			vmi = libwait.WaitUntilVMIReady(vmi, console.LoginToCirros)
+			vmi = libwait.WaitUntilVMIReady(vmi, console.LoginToFedora)
 
 			err = console.SafeExpectBatch(vmi, []expect.Batcher{
 				&expect.BSnd{S: fmt.Sprintf("lspci | grep %s | wc -l\n", pciRootPortID)},
@@ -69,10 +69,10 @@ var _ = Describe("[sig-compute]VM Hotplug PCI Port Allocation", decorators.SigCo
 			Expect(err).ToNot(HaveOccurred())
 		},
 		// min required free ports for <= 2G memory is 3
-		Entry("with 1Gi memory and 0 additional devs", "1Gi", 0, 3),
+		Entry("[test_id:9194]with 1Gi memory and 0 additional devs", "1Gi", 0, 3),
 		// 16 total ports default for > 2G and that will leave 9 free
-		Entry("with 2.1Gi memory and 0 additional devs", "2.1Gi", 0, 9),
+		Entry("[test_id:2543]with 2.1Gi memory and 0 additional devs", "2.1Gi", 0, 9),
 		// min required free ports for > 2G memory is 6
-		Entry("with 2.1Gi memory and 6 additional devs", "2.1Gi", 6, 6),
+		Entry("[test_id:4324]with 2.1Gi memory and 6 additional devs", "2.1Gi", 6, 6),
 	)
 })

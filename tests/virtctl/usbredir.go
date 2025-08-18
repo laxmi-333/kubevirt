@@ -39,6 +39,7 @@ import (
 
 	"kubevirt.io/kubevirt/pkg/libvmi"
 	"kubevirt.io/kubevirt/tests/decorators"
+	"kubevirt.io/kubevirt/tests/libvmifact"
 	"kubevirt.io/kubevirt/tests/libvmops"
 )
 
@@ -66,18 +67,18 @@ const connectedKey ctxKeyType = "connected"
 
 var _ = Describe(SIG("[crit:medium][vendor:cnv-qe@redhat.com][level:component][sig-compute] usbredir", decorators.SigCompute, func() {
 	const (
-		enoughMemForSafeBiosEmulation = "32Mi"
+		enoughMemForSafeBiosEmulation = "128Mi"
 		vmiRunTimeout                 = 90
 	)
 	var vmi *v1.VirtualMachineInstance
 
 	BeforeEach(func() {
 		// A VMI for each test to have fresh stack on server side
-		vmi = libvmi.New(libvmi.WithResourceMemory(enoughMemForSafeBiosEmulation), withClientPassthrough())
+		vmi = libvmifact.NewAlpine(libvmi.WithResourceMemory(enoughMemForSafeBiosEmulation), withClientPassthrough())
 		vmi = libvmops.RunVMIAndExpectLaunch(vmi, vmiRunTimeout)
 	})
 
-	It("Should fail when limit is reached", func() {
+	It("[test_id:6789]Should fail when limit is reached", func() {
 		var errchs []chan error
 		for i := range v1.UsbClientPassthroughMaxNumberOf + 1 {
 			Eventually(func(g Gomega) {
@@ -121,7 +122,7 @@ var _ = Describe(SIG("[crit:medium][vendor:cnv-qe@redhat.com][level:component][s
 		Expect(numOfErrors).To(Equal(1), "Only one connection should fail")
 	})
 
-	It("Should work several times", func() {
+	It("[test_id:2812]Should work several times", func() {
 		for range 4 * v1.UsbClientPassthroughMaxNumberOf {
 			Eventually(func(g Gomega) {
 				cmd := newVirtctlCommand("usbredir",
