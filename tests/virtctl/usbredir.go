@@ -39,6 +39,7 @@ import (
 
 	"kubevirt.io/kubevirt/pkg/libvmi"
 	"kubevirt.io/kubevirt/tests/decorators"
+	"kubevirt.io/kubevirt/tests/libvmifact"
 	"kubevirt.io/kubevirt/tests/libvmops"
 )
 
@@ -66,14 +67,14 @@ const connectedKey ctxKeyType = "connected"
 
 var _ = Describe(SIG("[crit:medium][vendor:cnv-qe@redhat.com][level:component][sig-compute] usbredir", decorators.SigCompute, func() {
 	const (
-		enoughMemForSafeBiosEmulation = "32Mi"
+		enoughMemForSafeBiosEmulation = "128Mi"
 		vmiRunTimeout                 = 90
 	)
 	var vmi *v1.VirtualMachineInstance
 
 	BeforeEach(func() {
 		// A VMI for each test to have fresh stack on server side
-		vmi = libvmi.New(libvmi.WithResourceMemory(enoughMemForSafeBiosEmulation), withClientPassthrough())
+		vmi = libvmifact.NewAlpine(libvmi.WithResourceMemory(enoughMemForSafeBiosEmulation), withClientPassthrough())
 		vmi = libvmops.RunVMIAndExpectLaunch(vmi, vmiRunTimeout)
 	})
 
