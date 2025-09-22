@@ -140,7 +140,7 @@ var _ = Describe(SIG("VirtualMachineSnapshot Tests", func() {
 	Context("With simple VM", func() {
 		BeforeEach(func() {
 			var err error
-			vm = libvmi.NewVirtualMachine(libvmifact.NewCirros())
+			vm = libvmi.NewVirtualMachine(libvmifact.NewAlpine(libvmi.WithCloudInitNoCloud(libvmifact.WithDummyCloudForFastBoot())))
 			vm, err = virtClient.VirtualMachine(testsuite.GetTestNamespace(nil)).Create(context.Background(), vm, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 		})
@@ -337,6 +337,21 @@ var _ = Describe(SIG("VirtualMachineSnapshot Tests", func() {
 				}, 30)).To(Succeed())
 			}
 
+			ensureNoFreezeFedora := func(vmi *v1.VirtualMachineInstance) {
+				Expect(console.LoginToFedora(vmi)).To(Succeed())
+
+				syslogCheck := "cat /var/log/messages"
+				expectedFreezeOutput := "guest-fsfreeze called"
+				Expect(console.SafeExpectBatch(vmi, []expect.Batcher{
+					&expect.BSnd{S: "ls /var/log/messages\n"},
+					&expect.BExp{R: "/var/log/messages"},
+					&expect.BSnd{S: fmt.Sprintf(grepCmd, syslogCheck, expectedFreezeOutput)},
+					&expect.BExp{R: console.PromptExpression},
+					&expect.BSnd{S: console.EchoLastReturnValue},
+					&expect.BExp{R: console.RetValue("1")},
+				}, 30)).To(Succeed())
+			}
+
 			It("[test_id:6767]with volumes and guest agent available", decorators.StorageCritical, func() {
 				dv := libdv.NewDataVolume(
 					libdv.WithBlankImageSource(),
@@ -423,7 +438,7 @@ var _ = Describe(SIG("VirtualMachineSnapshot Tests", func() {
 			})
 
 			It("[test_id:6769]without volumes with guest agent available", func() {
-				vmi := libvmifact.NewAlpineWithTestTooling(libnet.WithMasqueradeNetworking())
+				vmi := libvmifact.NewFedora(libnet.WithMasqueradeNetworking())
 				vmi.Namespace = testsuite.GetTestNamespace(nil)
 				vm = libvmi.NewVirtualMachine(vmi)
 
@@ -439,7 +454,7 @@ var _ = Describe(SIG("VirtualMachineSnapshot Tests", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				snapshot = libstorage.WaitSnapshotSucceeded(virtClient, vm.Namespace, snapshot.Name)
-				checkVMFreeze(snapshot, vmi, true, ensureNoFreezeAlpine)
+				checkVMFreeze(snapshot, vmi, true, ensureNoFreezeFedora)
 
 				Expect(snapshot.Status.CreationTime).ToNot(BeNil())
 				contentName := *snapshot.Status.VirtualMachineSnapshotContentName
@@ -1178,11 +1193,11 @@ var _ = Describe(SIG("VirtualMachineSnapshot Tests", func() {
 			wffc := libstorage.IsStorageClassBindingModeWaitForFirstConsumer(snapshotStorageClass)
 			// Stand alone dv
 			dv := libdv.NewDataVolume(
-				libdv.WithBlankImageSource(),
+				libdv.WithRegistryURLSource(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskAlpine)),
 				libdv.WithStorage(
 					libdv.StorageWithStorageClass(snapshotStorageClass),
-					libdv.StorageWithVolumeSize(cd.BlankVolumeSize)),
-			)
+					libdv.StorageWithVolumeSize(cd.ContainerDiskSizeBySourceURL(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskAlpine))),
+				))
 			dv, err = virtClient.CdiClient().CdiV1beta1().DataVolumes(testsuite.GetTestNamespace(nil)).Create(context.Background(), dv, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 

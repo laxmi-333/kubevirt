@@ -158,10 +158,11 @@ func RenderVMIWithHotplugDataVolume(dvName, ns string, opts ...libvmi.Option) *v
 func renderVMI(ns string, opts ...libvmi.Option) *v1.VirtualMachineInstance {
 	defaultOptions := []libvmi.Option{
 		// This default can be optimized further to 128Mi on certain setups
-		libvmi.WithResourceMemory("256Mi"),
+		libvmi.WithResourceMemory("512Mi"),
 		libvmi.WithNamespace(ns),
 		libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 		libvmi.WithNetwork(v1.DefaultPodNetwork()),
+		libvmi.WithRng(),
 	}
 	return libvmi.New(append(defaultOptions, opts...)...)
 }

@@ -37,6 +37,7 @@ import (
 	"kubevirt.io/kubevirt/tests/decorators"
 	"kubevirt.io/kubevirt/tests/framework/kubevirt"
 	"kubevirt.io/kubevirt/tests/libsecret"
+	"kubevirt.io/kubevirt/tests/libvmifact"
 	"kubevirt.io/kubevirt/tests/testsuite"
 )
 
@@ -143,7 +144,7 @@ var _ = Describe("[sig-storage]ObjectGraph", decorators.SigStorage, func() {
 
 		BeforeEach(func() {
 			By("Creating and starting a VMI")
-			vmi = libvmi.New(
+			vmi = libvmifact.NewAlpine(
 				libvmi.WithResourceMemory("128Mi"),
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
