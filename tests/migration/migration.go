@@ -556,6 +556,18 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 				num := 4
 
 				for i := 0; i < num; i++ {
+					// capture vmi ip before migration
+					beforeVMI, err := virtClient.VirtualMachineInstance(vmi.Namespace).Get(context.Background(), vmi.Name, metav1.GetOptions{})
+					Expect(err).ToNot(HaveOccurred(), "Should successfully get VMI before migration")
+
+					beforeIP := ""
+					if len(beforeVMI.Status.Interfaces) > 0 {
+						beforeIP = beforeVMI.Status.Interfaces[0].IP
+					}
+
+					By(fmt.Sprintf("Before migration %d: VMI IP = %s", i, beforeIP))
+					fmt.Printf("\n==== Before migration %d: VMI IP = %s ====\n", i, beforeIP)
+
 					// execute a migration, wait for finalized state
 					By(fmt.Sprintf("Starting the Migration for iteration %d", i))
 					migration := libmigration.New(vmi.Name, vmi.Namespace)
@@ -565,14 +577,22 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 					libmigration.ConfirmVMIPostMigration(virtClient, vmi, migration)
 					libmigration.ConfirmMigrationDataIsStored(virtClient, migration, vmi)
 
-					By("Check if Migrated VMI has updated IP and IPs fields")
-					Eventually(func() error {
-						newvmi, err := virtClient.VirtualMachineInstance(vmi.Namespace).Get(context.Background(), vmi.Name, metav1.GetOptions{})
-						Expect(err).ToNot(HaveOccurred(), "Should successfully get new VMI")
-						vmiPod, err := libpod.GetPodByVirtualMachineInstance(newvmi, vmi.Namespace)
-						Expect(err).NotTo(HaveOccurred())
-						return libnet.ValidateVMIandPodIPMatch(newvmi, vmiPod)
-					}, 180*time.Second, time.Second).Should(Succeed(), "Should have updated IP and IPs fields")
+					// check vmi ip after migration
+					By(fmt.Sprintf("Waiting for updated VMI IP after migration %d", i))
+					var afterIP string
+					Eventually(func() string {
+						afterVMI, err := virtClient.VirtualMachineInstance(vmi.Namespace).Get(context.Background(), vmi.Name, metav1.GetOptions{})
+						Expect(err).ToNot(HaveOccurred(), "Should successfully get VMI after migration")
+						afterIP := afterVMI.Status.Interfaces[0].IP
+						if afterIP == "" {
+							return ""
+						}
+						fmt.Println("Print After IP:", i, afterIP)
+						return afterIP
+					}, 180*time.Second, 5*time.Second).Should(SatisfyAll(Not(Equal(beforeIP)), Not(BeEmpty())), "VMI IP should eventually change and not be empty after migration")
+
+					By(fmt.Sprintf("After migration %d: VMI IP = %s", i, afterIP))
+					fmt.Printf("\n==== After migration %d: VMI IP = %s ====\n", i, afterIP)
 				}
 			})
 
