@@ -29,6 +29,7 @@ import (
 	"kubevirt.io/kubevirt/pkg/libdv"
 	"kubevirt.io/kubevirt/pkg/libvmi"
 	"kubevirt.io/kubevirt/pkg/pointer"
+	cd "kubevirt.io/kubevirt/tests/containerdisk"
 	"kubevirt.io/kubevirt/tests/decorators"
 	"kubevirt.io/kubevirt/tests/framework/kubevirt"
 	"kubevirt.io/kubevirt/tests/framework/matcher"
@@ -119,7 +120,7 @@ var _ = Describe("[crit:medium][vendor:cnv-qe@redhat.com][level:component][sig-c
 		DescribeTable("referencing a non-existent", func(vmOptionFunc func(*virtv1.VirtualMachine), expectedReason string, createResourceFunc func(string) error) {
 			By("Creating the VM and asserting that it doesn't start and has the expected condition in place")
 			vm := libvmi.NewVirtualMachine(
-				libvmifact.NewGuestless(),
+				libvmifact.NewAlpine(),
 				libvmi.WithRunStrategy(virtv1.RunStrategyAlways),
 				vmOptionFunc,
 			)
@@ -240,7 +241,7 @@ var _ = Describe("[crit:medium][vendor:cnv-qe@redhat.com][level:component][sig-c
 			expectedCausesLength                   = 3
 		)
 		BeforeEach(func() {
-			vmi = libvmifact.NewGuestless()
+			vmi = libvmifact.NewAlpine()
 		})
 
 		It("[test_id:CNV-9094] should find and apply cluster instancetype and preferences when kind isn't provided", func() {
@@ -594,7 +595,7 @@ var _ = Describe("[crit:medium][vendor:cnv-qe@redhat.com][level:component][sig-c
 			Expect(vmi.Spec.Domain.CPU.Sockets).To(Equal(originalInstancetypeCPUGuest))
 
 			By("Creating a second VirtualMachine using the now updated VirtualMachineInstancetype and original VirtualMachinePreference")
-			newVMI := libvmifact.NewGuestless()
+			newVMI := libvmifact.NewAlpine()
 			newVM := libvmi.NewVirtualMachine(newVMI,
 				libvmi.WithInstancetype(instancetype.Name),
 				libvmi.WithPreference(preference.Name),
@@ -788,7 +789,7 @@ var _ = Describe("[crit:medium][vendor:cnv-qe@redhat.com][level:component][sig-c
 			sourceDV = libdv.NewDataVolume(
 				libdv.WithNamespace(namespace),
 				libdv.WithForceBindAnnotation(),
-				libdv.WithBlankImageSource(),
+				libdv.WithRegistryURLSource(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskAlpine)),
 				libdv.WithStorage(libdv.StorageWithAccessMode(k8sv1.ReadWriteOnce), libdv.StorageWithVolumeSize("1Gi")),
 				libdv.WithDefaultInstancetype(instancetypeapi.SingularResourceName, instancetype.Name),
 				libdv.WithDefaultPreference(instancetypeapi.SingularPreferenceResourceName, preference.Name),
@@ -1020,7 +1021,7 @@ var _ = Describe("[crit:medium][vendor:cnv-qe@redhat.com][level:component][sig-c
 
 	Context("instance type with dedicatedCPUPlacement enabled", decorators.RequiresNodeWithCPUManager, func() {
 		It("should be accepted and result in running VirtualMachineInstance", func() {
-			vmi := libvmifact.NewGuestless()
+			vmi := libvmifact.NewAlpine()
 
 			clusterInstancetype := builder.NewClusterInstancetypeFromVMI(vmi)
 			clusterInstancetype.Spec.CPU.DedicatedCPUPlacement = pointer.P(true)

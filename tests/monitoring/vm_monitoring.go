@@ -71,7 +71,7 @@ var _ = Describe("[sig-monitoring]VM Monitoring", Serial, decorators.SigMonitori
 	Context("Cluster VM metrics", func() {
 		It("kubevirt_number_of_vms should reflect the number of VMs", func() {
 			for i := 0; i < 5; i++ {
-				vmi := libvmifact.NewGuestless()
+				vmi := libvmifact.NewAlpine()
 				vm := libvmi.NewVirtualMachine(vmi)
 				_, err = virtClient.VirtualMachine(testsuite.GetTestNamespace(nil)).Create(context.Background(), vm, metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())
@@ -83,7 +83,7 @@ var _ = Describe("[sig-monitoring]VM Monitoring", Serial, decorators.SigMonitori
 
 	Context("VMI metrics", func() {
 		It("should have kubevirt_vmi_phase_transition_time_seconds buckets correctly configured", func() {
-			vmi := libvmifact.NewGuestless()
+			vmi := libvmifact.NewAlpine()
 			libvmops.RunVMIAndExpectLaunch(vmi, libvmops.StartupTimeoutSecondsHuge)
 
 			for _, bucket := range virtcontroller.PhaseTransitionTimeBuckets() {
@@ -95,7 +95,7 @@ var _ = Describe("[sig-monitoring]VM Monitoring", Serial, decorators.SigMonitori
 		})
 
 		It("should have kubevirt_rest_client_requests_total for the 'virtualmachineinstances' resource", func() {
-			vmi := libvmifact.NewGuestless()
+			vmi := libvmifact.NewAlpine()
 			libvmops.RunVMIAndExpectLaunch(vmi, libvmops.StartupTimeoutSecondsHuge)
 
 			labels := map[string]string{"resource": "virtualmachineinstances"}
@@ -123,7 +123,7 @@ var _ = Describe("[sig-monitoring]VM Monitoring", Serial, decorators.SigMonitori
 		It("Should be available for a running VM", func() {
 
 			By("Create a running VirtualMachine")
-			vm = libvmi.NewVirtualMachine(libvmifact.NewGuestless(), libvmi.WithRunStrategy(v1.RunStrategyAlways))
+			vm = libvmi.NewVirtualMachine(libvmifact.NewAlpine(), libvmi.WithRunStrategy(v1.RunStrategyAlways))
 			vm, err = virtClient.VirtualMachine(testsuite.GetTestNamespace(vm)).Create(context.Background(), vm, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			Eventually(matcher.ThisVM(vm)).WithTimeout(300 * time.Second).WithPolling(time.Second).Should(matcher.BeReady())
@@ -138,7 +138,7 @@ var _ = Describe("[sig-monitoring]VM Monitoring", Serial, decorators.SigMonitori
 		It("Should be available for a paused VM", func() {
 
 			By("Create a running VirtualMachine")
-			vm = libvmi.NewVirtualMachine(libvmifact.NewGuestless(), libvmi.WithRunStrategy(v1.RunStrategyAlways))
+			vm = libvmi.NewVirtualMachine(libvmifact.NewAlpine(), libvmi.WithRunStrategy(v1.RunStrategyAlways))
 			vm, err = virtClient.VirtualMachine(testsuite.GetTestNamespace(vm)).Create(context.Background(), vm, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			Eventually(matcher.ThisVM(vm)).WithTimeout(300 * time.Second).WithPolling(time.Second).Should(matcher.BeReady())
@@ -159,7 +159,7 @@ var _ = Describe("[sig-monitoring]VM Monitoring", Serial, decorators.SigMonitori
 
 		It("Should not be available for a stopped VM", func() {
 			By("Create a stopped VirtualMachine")
-			vm = libvmi.NewVirtualMachine(libvmifact.NewGuestless())
+			vm = libvmi.NewVirtualMachine(libvmifact.NewAlpine())
 			vm, err = virtClient.VirtualMachine(testsuite.GetTestNamespace(vm)).Create(context.Background(), vm, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 
@@ -277,7 +277,7 @@ var _ = Describe("[sig-monitoring]VM Monitoring", Serial, decorators.SigMonitori
 		It("Snapshot succeeded timestamp metric values should be correct", func() {
 			virtClient = kubevirt.Client()
 			By("Creating a Virtual Machine")
-			vmi := libvmifact.NewGuestless()
+			vmi := libvmifact.NewAlpine()
 			vm = libvmi.NewVirtualMachine(vmi)
 			vm, err := virtClient.VirtualMachine(testsuite.GetTestNamespace(nil)).Create(context.Background(), vm, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
@@ -365,7 +365,7 @@ var _ = Describe("[sig-monitoring]VM Monitoring", Serial, decorators.SigMonitori
 
 		It("[test_id:9260] should fire OrphanedVirtualMachineInstances alert", func() {
 			By("starting VMI")
-			vmi := libvmifact.NewGuestless()
+			vmi := libvmifact.NewAlpine()
 			libvmops.RunVMIAndExpectLaunch(vmi, libvmops.StartupTimeoutSecondsHuge)
 
 			By("delete virt-handler daemonset")
@@ -420,7 +420,7 @@ var _ = Describe("[sig-monitoring]VM Monitoring", Serial, decorators.SigMonitori
 
 		It("should ensure a running VM has dirty rate metrics", func() {
 			By("Create a running VirtualMachine")
-			vm := libvmi.NewVirtualMachine(libvmifact.NewGuestless(), libvmi.WithRunStrategy(v1.RunStrategyAlways))
+			vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine(), libvmi.WithRunStrategy(v1.RunStrategyAlways))
 			vm, err := virtClient.VirtualMachine(testsuite.GetTestNamespace(vm)).Create(context.Background(), vm, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			Eventually(matcher.ThisVM(vm)).WithTimeout(100 * time.Second).WithPolling(time.Second).Should(matcher.BeReady())
