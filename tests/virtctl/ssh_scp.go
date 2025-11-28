@@ -111,14 +111,14 @@ func createVMWithPublicKey() (vmi *v1.VirtualMachineInstance, keyFile string) {
 	ExpectWithOffset(1, libssh.DumpPrivateKey(priv, keyFile)).To(Succeed())
 
 	By("injecting a SSH public key into a VMI")
-	vmi = libvmifact.NewAlpineWithTestTooling(
+	vmi = libvmifact.NewFedora(
 		libvmi.WithCloudInitNoCloud(libvmici.WithNoCloudUserData(libssh.RenderUserDataWithKey(pub))),
 	)
 	vmi, err = kubevirt.Client().VirtualMachineInstance(testsuite.GetTestNamespace(nil)).
 		Create(context.Background(), vmi, metav1.CreateOptions{})
 	ExpectWithOffset(1, err).ToNot(HaveOccurred())
 
-	return libwait.WaitUntilVMIReady(vmi, console.LoginToAlpine), keyFile
+	return libwait.WaitUntilVMIReady(vmi, console.LoginToFedora), keyFile
 }
 
 func runSSHCommand(name, user, keyFile string) {

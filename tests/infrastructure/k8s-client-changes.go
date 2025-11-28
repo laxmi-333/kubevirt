@@ -73,7 +73,7 @@ var _ = Describe(SIGSerial("changes to the kubernetes client", func() {
 
 	It("on the controller rate limiter should lead to delayed VMI starts", func() {
 		By("first getting the basetime for a replicaset")
-		replicaset := replicaset.New(libvmifact.NewCirros(libvmi.WithMemoryRequest("1Mi")), 0)
+		replicaset := replicaset.New(libvmifact.NewAlpine(libvmi.WithMemoryRequest("128Mi")), 0)
 		replicaset, err = virtClient.ReplicaSet(testsuite.GetTestNamespace(nil)).Create(context.Background(), replicaset, metav1.CreateOptions{})
 		Expect(err).ToNot(HaveOccurred())
 		start := time.Now()
@@ -105,8 +105,8 @@ var _ = Describe(SIGSerial("changes to the kubernetes client", func() {
 	It("on the virt handler rate limiter should lead to delayed VMI running states", func() {
 		By("first getting the basetime for a replicaset")
 		targetNode := libnode.GetAllSchedulableNodes(virtClient).Items[0]
-		vmi := libvmi.New(
-			libvmi.WithMemoryRequest("1Mi"),
+		vmi := libvmifact.NewAlpine(
+			libvmi.WithMemoryRequest("128Mi"),
 			libvmi.WithNodeSelectorFor(targetNode.Name),
 		)
 
