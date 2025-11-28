@@ -175,7 +175,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 			const labelKey = "subdomain"
 			const labelValue = "mysub"
 
-			vmi := libvmifact.NewCirros(
+			vmi := libvmifact.NewFedora(
 				libvmi.WithHostname(hostname),
 				withSubdomain(subdomain),
 				libvmi.WithLabel(labelKey, labelValue),
@@ -185,7 +185,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 			vmi = libvmops.RunVMIAndExpectLaunch(vmi, libvmops.StartupTimeoutSecondsHuge)
 
 			By("Starting hello world in the VM")
-			vmnetserver.StartTCPServer(vmi, port, console.LoginToCirros)
+			vmnetserver.StartTCPServer(vmi, port, console.LoginToFedora)
 
 			By("Exposing headless service matching subdomain")
 			service := service.BuildHeadlessSpec(subdomain, port, port, labelKey, labelValue)
@@ -272,7 +272,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 			})
 		})
 		Context("with a Alpine disk", func() {
-			It("[test_id:6969]should be successfully migrate with a tablet device", decorators.Conformance, func() {
+			It("[test_id:6969US]should be successfully migrate with a tablet device", decorators.Conformance, func() {
 				vmi := libvmifact.NewAlpineWithTestTooling(
 					libnet.WithMasqueradeNetworking(),
 					libvmi.WithTablet("tablet0", v1.InputBusUSB),
@@ -291,7 +291,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 				// check VMI, confirm migration state
 				libmigration.ConfirmVMIPostMigration(virtClient, vmi, migration)
 			})
-			It("should be successfully migrate with a WriteBack disk cache", func() {
+			It("[test_id:5689]should be successfully migrate with a WriteBack disk cache", func() {
 				vmi := libvmifact.NewAlpineWithTestTooling(libnet.WithMasqueradeNetworking())
 				vmi.Spec.Domain.Devices.Disks[0].Cache = v1.CacheWriteBack
 
@@ -317,7 +317,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 				Expect(disks[0].Driver.Cache).To(Equal(string(v1.CacheWriteBack)))
 			})
 
-			It("[test_id:6970]should migrate vmi with cdroms on various bus types", decorators.Conformance, func() {
+			It("[test_id:6970US]should migrate vmi with cdroms on various bus types", decorators.Conformance, func() {
 				vmi := libvmifact.NewAlpineWithTestTooling(
 					libnet.WithMasqueradeNetworking(),
 					libvmi.WithEphemeralCDRom("cdrom-0", v1.DiskBusSATA, cd.ContainerDiskFor(cd.ContainerDiskAlpine)),
@@ -339,7 +339,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 				libmigration.ConfirmVMIPostMigration(virtClient, vmi, migration)
 			})
 
-			It("should migrate vmi with LiveMigrateIfPossible eviction strategy", func() {
+			It("[test_id:2353]should migrate vmi with LiveMigrateIfPossible eviction strategy", func() {
 				vmi := libvmifact.NewAlpineWithTestTooling(
 					libnet.WithMasqueradeNetworking(),
 					libvmi.WithEvictionStrategy(v1.EvictionStrategyLiveMigrateIfPossible),
@@ -489,7 +489,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 				Expect(timerFrequency).ToNot(BeEmpty())
 			})
 
-			It("[test_id:4113]should be successfully migrate with cloud-init disk with devices on the root bus", func() {
+			It("[test_id:4113US]should be successfully migrate with cloud-init disk with devices on the root bus", func() {
 				vmi := libvmifact.NewAlpineWithTestTooling(libnet.WithMasqueradeNetworking())
 				vmi.Annotations = map[string]string{
 					v1.PlacePCIDevicesOnRootComplex: "true",
@@ -521,7 +521,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 				Expect(rootPortController).To(BeEmpty(), "libvirt should not add additional buses to the root one")
 			})
 
-			It("[test_id:9795]should migrate vmi with a usb disk", func() {
+			It("[test_id:9795US]should migrate vmi with a usb disk", func() {
 
 				vmi := libvmifact.NewAlpineWithTestTooling(
 					libvmi.WithEmptyDisk("uniqueusbdisk", v1.DiskBusUSB, resource.MustParse("128Mi")),
@@ -993,14 +993,14 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 
 			It("[test_id:3240]should be successfully with a cloud init", func() {
 				// Start the VirtualMachineInstance with the PVC attached
-				vmi := newVMIWithDataVolumeForMigration(cd.ContainerDiskCirros, k8sv1.ReadWriteMany, sc,
+				vmi := newVMIWithDataVolumeForMigration(cd.ContainerDiskAlpine, k8sv1.ReadWriteMany, sc,
 					libvmi.WithCloudInitNoCloud(libvmifact.WithDummyCloudForFastBoot()),
-					libvmi.WithHostname(fmt.Sprintf("%s", cd.ContainerDiskCirros)),
+					libvmi.WithHostname(fmt.Sprintf("%s", cd.ContainerDiskAlpine)),
 				)
 				vmi = libvmops.RunVMIAndExpectLaunch(vmi, libvmops.StartupTimeoutSecondsXLarge)
 
 				By("Checking that the VirtualMachineInstance console has expected output")
-				Expect(console.LoginToCirros(vmi)).To(Succeed())
+				Expect(console.LoginToAlpine(vmi)).To(Succeed())
 
 				By("Checking that MigrationMethod is set to BlockMigration")
 				Expect(vmi.Status.MigrationMethod).To(Equal(v1.BlockMigration))
@@ -1700,7 +1700,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 					})),
 				), "vmi's migration state should be finalized as failed after target pod exits")
 			})
-			It("Migration should generate empty isos of the right size on the target", func() {
+			It("[test_id:6357]Migration should generate empty isos of the right size on the target", func() {
 				By("Creating a VMI with cloud-init and config maps")
 				configMapName := "configmap-" + rand.String(5)
 				secretName := "secret-" + rand.String(5)
@@ -2035,7 +2035,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 
 				It("should be able to properly abort migration", func() {
 					By("Starting a VirtualMachineInstance")
-					vmi := libvmifact.NewGuestless(
+					vmi := libvmifact.NewAlpine(
 						libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 						libvmi.WithNetwork(v1.DefaultPodNetwork()),
 					)
@@ -2154,7 +2154,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 				kvconfig.UpdateKubeVirtConfigValueAndWait(*kvConfigurationCopy)
 			})
 
-			It("should be able to migrate", func() {
+			It("[test_id:2387]should be able to migrate", func() {
 				vmi := libvmifact.NewAlpineWithTestTooling(libnet.WithMasqueradeNetworking())
 
 				By("Starting the VirtualMachineInstance")
@@ -2183,7 +2183,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 		Context("with unsupported machine type", Serial, func() {
 
 			It("should prevent migration scheduling", func() {
-				vmi := libvmifact.NewGuestless(libnet.WithMasqueradeNetworking())
+				vmi := libvmifact.NewAlpine(libnet.WithMasqueradeNetworking())
 				vmi.Namespace = testsuite.GetTestNamespace(vmi)
 
 				vmi = libvmops.RunVMIAndExpectLaunch(vmi, libvmops.StartupTimeoutSecondsSmall)
@@ -2640,7 +2640,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 	Context("with a live-migration in flight", func() {
 		It("there should always be a single active migration per VMI", decorators.Conformance, func() {
 			By("Starting a VMI")
-			vmi := libvmifact.NewGuestless(
+			vmi := libvmifact.NewAlpine(
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
 			)
@@ -2689,8 +2689,8 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 			}
 
 			It("invtsc feature exists", decorators.Invtsc, func() {
-				vmi := libvmi.New(
-					libvmi.WithMemoryRequest("1Mi"),
+				vmi := libvmifact.NewAlpine(
+					libvmi.WithMemoryRequest("128Mi"),
 					libvmi.WithCPUFeature("invtsc", "require"),
 				)
 				vmi = libvmops.RunVMIAndExpectLaunch(vmi, libvmops.StartupTimeoutSecondsHuge)
@@ -2715,7 +2715,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 	Context("ResourceQuota rejection", func() {
 		It("Should contain condition when migrating with quota that doesn't have resources for both source and target", decorators.Conformance, func() {
 			vmiRequest := resource.MustParse("200Mi")
-			vmi := libvmifact.NewCirros(
+			vmi := libvmifact.NewFedora(
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithMemoryRequest(vmiRequest.String()),

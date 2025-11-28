@@ -81,10 +81,10 @@ var _ = Describe("[sig-storage] Storage configuration", decorators.SigStorage, d
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
 				libvmi.WithMemoryRequest("128Mi"),
-				libvmi.WithContainerDisk("ephemeral-disk1", cd.ContainerDiskFor(cd.ContainerDiskCirros)),
-				libvmi.WithContainerDisk("ephemeral-disk2", cd.ContainerDiskFor(cd.ContainerDiskCirros)),
-				libvmi.WithContainerDisk("ephemeral-disk5", cd.ContainerDiskFor(cd.ContainerDiskCirros)),
-				libvmi.WithContainerDisk("ephemeral-disk3", cd.ContainerDiskFor(cd.ContainerDiskCirros)),
+				libvmi.WithContainerDisk("ephemeral-disk1", cd.ContainerDiskFor(cd.ContainerDiskAlpine)),
+				libvmi.WithContainerDisk("ephemeral-disk2", cd.ContainerDiskFor(cd.ContainerDiskAlpine)),
+				libvmi.WithContainerDisk("ephemeral-disk5", cd.ContainerDiskFor(cd.ContainerDiskAlpine)),
+				libvmi.WithContainerDisk("ephemeral-disk3", cd.ContainerDiskFor(cd.ContainerDiskAlpine)),
 				libvmi.WithCloudInitNoCloud(libvmici.WithNoCloudUserData("#!/bin/bash\necho 'hello'\n")),
 			)
 			By("setting disk caches")
@@ -136,7 +136,7 @@ var _ = Describe("[sig-storage] Storage configuration", decorators.SigStorage, d
 			}
 
 			dataVolume := libdv.NewDataVolume(
-				libdv.WithRegistryURLSource(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskCirros)),
+				libdv.WithRegistryURLSource(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskAlpine)),
 				libdv.WithStorage(libdv.StorageWithStorageClass(sc), libdv.StorageWithBlockVolumeMode()),
 			)
 			dataVolume, err := virtClient.CdiClient().CdiV1beta1().DataVolumes(testsuite.GetTestNamespace(nil)).Create(context.Background(), dataVolume, metav1.CreateOptions{})
@@ -149,13 +149,13 @@ var _ = Describe("[sig-storage] Storage configuration", decorators.SigStorage, d
 			vmi := libvmi.New(
 				libvmi.WithMemoryRequest("128Mi"),
 				// disk[0]
-				libvmi.WithContainerDisk("ephemeral-disk1", cd.ContainerDiskFor(cd.ContainerDiskCirros)),
+				libvmi.WithContainerDisk("ephemeral-disk1", cd.ContainerDiskFor(cd.ContainerDiskAlpine)),
 				// disk[1]:  Block, no user-input, cache=none
 				libvmi.WithPersistentVolumeClaim("block-pvc", dataVolume.Name),
 				// disk[2]: File, not-sparsed, no user-input, cache=none
 				libvmi.WithPersistentVolumeClaim("hostpath-pvc", fmt.Sprintf("disk-%s", alpineHostPath)),
 				// disk[3]
-				libvmi.WithContainerDisk("ephemeral-disk2", cd.ContainerDiskFor(cd.ContainerDiskCirros)),
+				libvmi.WithContainerDisk("ephemeral-disk2", cd.ContainerDiskFor(cd.ContainerDiskAlpine)),
 			)
 			// disk[0]:  File, sparsed, no user-input, cache=none
 			vmi.Spec.Domain.Devices.Disks[0].Cache = v1.CacheNone
@@ -211,7 +211,7 @@ var _ = Describe("[sig-storage] Storage configuration", decorators.SigStorage, d
 
 			By("creating a block volume")
 			dataVolume := libdv.NewDataVolume(
-				libdv.WithRegistryURLSource(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskCirros)),
+				libdv.WithRegistryURLSource(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskAlpine)),
 				libdv.WithStorage(libdv.StorageWithStorageClass(sc), libdv.StorageWithBlockVolumeMode()),
 			)
 			dataVolume, err := virtClient.CdiClient().CdiV1beta1().DataVolumes(testsuite.GetTestNamespace(nil)).Create(context.Background(), dataVolume, metav1.CreateOptions{})
@@ -226,9 +226,9 @@ var _ = Describe("[sig-storage] Storage configuration", decorators.SigStorage, d
 			)
 
 			By("setting the disk to use custom block sizes")
-			logicalSize := uint(16384)
-			physicalSize := uint(16384)
-			discardGranularity := uint(16384)
+			logicalSize := uint(2048)
+			physicalSize := uint(2048)
+			discardGranularity := uint(2048)
 			vmi.Spec.Domain.Devices.Disks[0].BlockSize = &v1.BlockSize{
 				Custom: &v1.CustomBlockSize{
 					Logical:            logicalSize,
@@ -261,7 +261,7 @@ var _ = Describe("[sig-storage] Storage configuration", decorators.SigStorage, d
 			}
 
 			dataVolume := libdv.NewDataVolume(
-				libdv.WithRegistryURLSource(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskCirros)),
+				libdv.WithRegistryURLSource(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskAlpine)),
 				libdv.WithStorage(libdv.StorageWithStorageClass(sc), libdv.StorageWithBlockVolumeMode()),
 			)
 			dataVolume, err := virtClient.CdiClient().CdiV1beta1().DataVolumes(testsuite.GetTestNamespace(nil)).Create(context.Background(), dataVolume, metav1.CreateOptions{})

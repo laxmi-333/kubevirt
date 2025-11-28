@@ -116,12 +116,12 @@ var _ = Describe(SIG("[rfe_id:1177][crit:medium] VirtualMachine", func() {
 		done <- true
 	},
 		Entry("with Fedora based VMI", libvmifact.NewFedora),
-		Entry("with unresponsive empty-disk VMI", libvmifact.NewGuestless),
+		Entry("[test_id:6360]with unresponsive empty-disk VMI", libvmifact.NewAlpine()),
 	)
 
 	Context("with paused vmi", func() {
 		It("[test_id:4598][test_id:3060]should signal paused/unpaused state with condition", decorators.Conformance, func() {
-			vm := libvmi.NewVirtualMachine(libvmifact.NewCirros(
+			vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine(
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork())),
 				libvmi.WithRunStrategy(v1.RunStrategyAlways))
@@ -139,7 +139,7 @@ var _ = Describe(SIG("[rfe_id:1177][crit:medium] VirtualMachine", func() {
 		})
 
 		It("[test_id:3085]should be stopped successfully", decorators.Conformance, func() {
-			vm := libvmi.NewVirtualMachine(libvmifact.NewCirros(
+			vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine(
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
 				withStartStrategy(pointer.P(v1.StartStrategyPaused))),
@@ -165,7 +165,7 @@ var _ = Describe(SIG("[rfe_id:1177][crit:medium] VirtualMachine", func() {
 		})
 
 		It("[test_id:3229]should gracefully handle being started again", func() {
-			vm := libvmi.NewVirtualMachine(libvmifact.NewCirros(
+			vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine(
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
 				withStartStrategy(pointer.P(v1.StartStrategyPaused))),
@@ -181,7 +181,7 @@ var _ = Describe(SIG("[rfe_id:1177][crit:medium] VirtualMachine", func() {
 		})
 
 		It("[test_id:3226]should be restarted successfully into unpaused state", func() {
-			vm := libvmi.NewVirtualMachine(libvmifact.NewCirros(
+			vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine(
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork())),
 				libvmi.WithRunStrategy(v1.RunStrategyAlways),
@@ -213,7 +213,7 @@ var _ = Describe(SIG("[rfe_id:1177][crit:medium] VirtualMachine", func() {
 
 	Context("should not change anything if dry-run option is passed", func() {
 		It("[test_id:7530]when starting a VM", func() {
-			vm := libvmi.NewVirtualMachine(libvmifact.NewGuestless(), libvmi.WithRunStrategy(v1.RunStrategyManual))
+			vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine(), libvmi.WithRunStrategy(v1.RunStrategyManual))
 
 			By("Creating VM")
 			vm, err := virtClient.VirtualMachine(testsuite.GetTestNamespace(nil)).Create(context.Background(), vm, metav1.CreateOptions{})
@@ -227,7 +227,7 @@ var _ = Describe(SIG("[rfe_id:1177][crit:medium] VirtualMachine", func() {
 		})
 
 		DescribeTable("when stopping a VM", func(gracePeriod *int64) {
-			vm := libvmi.NewVirtualMachine(libvmifact.NewGuestless(), libvmi.WithRunStrategy(v1.RunStrategyAlways))
+			vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine(), libvmi.WithRunStrategy(v1.RunStrategyAlways))
 
 			By("Creating VM")
 			vm, err := virtClient.VirtualMachine(testsuite.GetTestNamespace(nil)).Create(context.Background(), vm, metav1.CreateOptions{})
@@ -275,7 +275,7 @@ var _ = Describe(SIG("[rfe_id:1177][crit:medium] VirtualMachine", func() {
 		)
 
 		It("[test_id:7528]when restarting a VM", func() {
-			vm := libvmi.NewVirtualMachine(libvmifact.NewGuestless(), libvmi.WithRunStrategy(v1.RunStrategyAlways))
+			vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine(), libvmi.WithRunStrategy(v1.RunStrategyAlways))
 
 			By("Creating VM")
 			vm, err := virtClient.VirtualMachine(testsuite.GetTestNamespace(nil)).Create(context.Background(), vm, metav1.CreateOptions{})
