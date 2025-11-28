@@ -7,6 +7,7 @@ import (
 	"kubevirt.io/kubevirt/pkg/libvmi"
 	"kubevirt.io/kubevirt/tests/compute"
 	"kubevirt.io/kubevirt/tests/framework/kubevirt"
+	"kubevirt.io/kubevirt/tests/libvmifact"
 	"kubevirt.io/kubevirt/tests/libvmops"
 )
 
@@ -14,10 +15,10 @@ import (
 // The functest for configured usbredir is under tests/virtctl/usbredir.go
 var _ = Describe(compute.SIG("usbredir support", func() {
 
-	const enoughMemForSafeBiosEmulation = "32Mi"
+	const enoughMemForSafeBiosEmulation = "128Mi"
 
-	It("should fail to connect to VMI's usbredir socket", func() {
-		vmi := libvmi.New(libvmi.WithMemoryRequest(enoughMemForSafeBiosEmulation))
+	It("[test_id:2675]should fail to connect to VMI's usbredir socket", func() {
+		vmi := libvmifact.NewAlpine(libvmi.WithMemoryRequest(enoughMemForSafeBiosEmulation))
 		vmi = libvmops.RunVMIAndExpectLaunch(vmi, libvmops.StartupTimeoutSecondsMedium)
 		virtClient := kubevirt.Client()
 		usbredirVMI, err := virtClient.VirtualMachineInstance(vmi.ObjectMeta.Namespace).USBRedir(vmi.ObjectMeta.Name)

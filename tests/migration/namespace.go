@@ -180,10 +180,10 @@ var _ = Describe(SIG("Live Migration across namespaces", decorators.RequiresDece
 
 	Context("container disk", func() {
 
-		It("should live migrate a container disk vm, several times", func() {
+		It("[test_id:7687]should live migrate a container disk vm, several times", func() {
 			var targetVM *virtv1.VirtualMachine
 
-			sourceVMI := libvmifact.NewCirros(
+			sourceVMI := libvmifact.NewAlpine(
 				libvmi.WithNamespace(testsuite.NamespaceTestDefault),
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
@@ -220,7 +220,7 @@ var _ = Describe(SIG("Live Migration across namespaces", decorators.RequiresDece
 				err = deleteMigration(targetMigration)
 				Expect(err).ToNot(HaveOccurred())
 				By("Checking that the VirtualMachineInstance console has expected output")
-				Expect(console.LoginToCirros(expectedVMI)).To(Succeed())
+				Expect(console.LoginToAlpine(expectedVMI)).To(Succeed())
 
 				By(fmt.Sprintf("deleting source VM %s/%s", sourceVM.Namespace, sourceVM.Name))
 				deleteVM(sourceVM)
@@ -228,14 +228,14 @@ var _ = Describe(SIG("Live Migration across namespaces", decorators.RequiresDece
 			}
 		})
 
-		It("should live migrate a container disk vm, with an additional PVC mounted, should stay mounted after migration", func() {
+		It("[test_id:7688]should live migrate a container disk vm, with an additional PVC mounted, should stay mounted after migration", func() {
 			migrationID := fmt.Sprintf("mig-%s", rand.String(5))
 			sourceDV := libdv.NewDataVolume(
 				libdv.WithBlankImageSource(),
 				libdv.WithStorage(),
 			)
 
-			sourceVMI := libvmifact.NewCirros(
+			sourceVMI := libvmifact.NewFedora(
 				libvmi.WithNamespace(testsuite.NamespaceTestDefault),
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
@@ -269,13 +269,13 @@ var _ = Describe(SIG("Live Migration across namespaces", decorators.RequiresDece
 				}
 			}
 			By("Writing data to extra disk")
-			Expect(console.LoginToCirros(sourceVMI)).To(Succeed())
+			Expect(console.LoginToFedora(sourceVMI)).To(Succeed())
 			Expect(console.RunCommand(sourceVMI, fmt.Sprintf("sudo mkfs.ext4 /dev/%s", deviceName), 30*time.Second)).To(Succeed())
 			Expect(console.RunCommand(sourceVMI, "mkdir test", 30*time.Second)).To(Succeed())
-			Expect(console.RunCommand(sourceVMI, fmt.Sprintf("sudo mount -t ext4 /dev/%s /home/cirros/test", deviceName), 30*time.Second)).To(Succeed())
-			Expect(console.RunCommand(sourceVMI, "sudo chmod 777 /home/cirros/test", 30*time.Second)).To(Succeed())
-			Expect(console.RunCommand(sourceVMI, "sudo chown cirros:cirros /home/cirros/test", 30*time.Second)).To(Succeed())
-			Expect(console.RunCommand(sourceVMI, "printf 'important data' &> /home/cirros/test/data.txt", 30*time.Second)).To(Succeed())
+			Expect(console.RunCommand(sourceVMI, fmt.Sprintf("sudo mount -t ext4 /dev/%s /home/fedora/test", deviceName), 30*time.Second)).To(Succeed())
+			Expect(console.RunCommand(sourceVMI, "sudo chmod 777 /home/fedora/test", 30*time.Second)).To(Succeed())
+			Expect(console.RunCommand(sourceVMI, "sudo chown fedora:fedora /home/fedora/test", 30*time.Second)).To(Succeed())
+			Expect(console.RunCommand(sourceVMI, "printf 'important data' &> /home/fedora/test/data.txt", 30*time.Second)).To(Succeed())
 
 			targetDV, err = virtClient.CdiClient().CdiV1beta1().DataVolumes(testsuite.GetTestNamespace(targetDV)).Create(context.Background(), targetDV, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
@@ -298,8 +298,8 @@ var _ = Describe(SIG("Live Migration across namespaces", decorators.RequiresDece
 				}
 				return ""
 			}).WithTimeout(time.Minute).WithPolling(2 * time.Second).ShouldNot(BeEmpty())
-			Expect(console.LoginToCirros(targetVMI)).To(Succeed())
-			Expect(console.RunCommand(targetVMI, "cat /home/cirros/test/data.txt", 30*time.Second)).To(Succeed())
+			Expect(console.LoginToFedora(targetVMI)).To(Succeed())
+			Expect(console.RunCommand(targetVMI, "cat /home/fedora/test/data.txt", 30*time.Second)).To(Succeed())
 			By("verifying the runStrategy is properly updated to be what the annotation is")
 			Eventually(func() virtv1.VirtualMachineRunStrategy {
 				targetVM, err = virtClient.VirtualMachine(targetVM.Namespace).Get(context.Background(), targetVM.Name, metav1.GetOptions{})
@@ -351,7 +351,7 @@ var _ = Describe(SIG("Live Migration across namespaces", decorators.RequiresDece
 			}, 3*time.Second, 1*time.Second).Should(Succeed())
 		}
 
-		It("should live migrate a container disk vm, with an additional hotpluggedPVC mounted, should stay mounted after migration", decorators.RequiresRWXBlock, func() {
+		It("[test_id:2817]should live migrate a container disk vm, with an additional hotpluggedPVC mounted, should stay mounted after migration", decorators.RequiresRWXBlock, func() {
 			sc, exists := libstorage.GetRWXBlockStorageClass()
 			if !exists {
 				Fail("Fail test when RWXBlock storage class is not present")
@@ -359,19 +359,19 @@ var _ = Describe(SIG("Live Migration across namespaces", decorators.RequiresDece
 			migrationID := fmt.Sprintf("mig-%s", rand.String(5))
 			hotpluggedDV := createDVBlock(fmt.Sprintf("dv-%s", migrationID), testsuite.NamespaceTestDefault, sc)
 
-			sourceVMI := libvmifact.NewCirros(
+			sourceVMI := libvmifact.NewFedora(
 				libvmi.WithNamespace(testsuite.NamespaceTestDefault),
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
-				libvmi.WithCPURequest("1"), libvmi.WithMemoryRequest("128Mi"),
-				libvmi.WithCPULimit("1"), libvmi.WithMemoryLimit("128Mi"),
+				libvmi.WithCPURequest("1"), libvmi.WithMemoryRequest("512Mi"),
+				libvmi.WithCPULimit("1"), libvmi.WithMemoryLimit("512Mi"),
 				libvmi.WithAnnotation("kubevirt.io/libvirt-log-filters", "3:remote 4:event 3:util.json 3:util.object 3:util.dbus 3:util.netlink 3:node_device 3:rpc 3:access 1:*"),
 			)
 
 			sourceVM := createAndStartVMFromVMISpec(sourceVMI)
 			By("Adding volume to running VM")
 			volumeName := "testvolume"
-			addDVVolume(sourceVM.Name, sourceVM.Namespace, volumeName, hotpluggedDV.Name, virtv1.DiskBusSCSI)
+			addDVVolume(sourceVM.Name, sourceVM.Namespace, volumeName, hotpluggedDV.Name, virtv1.DiskBusVirtio)
 
 			By("Verifying the volume and disk are in the VMI")
 			Eventually(func() virtv1.VolumePhase {
@@ -395,15 +395,15 @@ var _ = Describe(SIG("Live Migration across namespaces", decorators.RequiresDece
 			}
 
 			By("Writing data to extra disk")
-			Expect(console.LoginToCirros(sourceVMI)).To(Succeed())
+			Expect(console.LoginToFedora(sourceVMI)).To(Succeed())
 			// I am aware I should not use the device name since it is not guaranteed to be the same as the one in the VMI
 			// I should be using the serial number, but not sure how to access that in cirros.
 			Expect(console.RunCommand(sourceVMI, fmt.Sprintf("sudo mkfs.ext4 /dev/%s", deviceName), 30*time.Second)).To(Succeed())
 			Expect(console.RunCommand(sourceVMI, "mkdir test", 30*time.Second)).To(Succeed())
-			Expect(console.RunCommand(sourceVMI, fmt.Sprintf("sudo mount -t ext4 /dev/%s /home/cirros/test", deviceName), 30*time.Second)).To(Succeed())
-			Expect(console.RunCommand(sourceVMI, "sudo chmod 777 /home/cirros/test", 30*time.Second)).To(Succeed())
-			Expect(console.RunCommand(sourceVMI, "sudo chown cirros:cirros /home/cirros/test", 30*time.Second)).To(Succeed())
-			Expect(console.RunCommand(sourceVMI, "printf 'important data' &> /home/cirros/test/data.txt", 30*time.Second)).To(Succeed())
+			Expect(console.RunCommand(sourceVMI, fmt.Sprintf("sudo mount -t ext4 /dev/%s /home/fedora/test", deviceName), 30*time.Second)).To(Succeed())
+			Expect(console.RunCommand(sourceVMI, "sudo chmod 777 /home/fedora/test", 30*time.Second)).To(Succeed())
+			Expect(console.RunCommand(sourceVMI, "sudo chown fedora:fedora /home/fedora/test", 30*time.Second)).To(Succeed())
+			Expect(console.RunCommand(sourceVMI, "printf 'important data' &> /home/fedora/test/data.txt", 30*time.Second)).To(Succeed())
 
 			By("Creating the target VM and disk")
 			targetVMI := sourceVMI.DeepCopy()
@@ -447,7 +447,7 @@ var _ = Describe(SIG("Live Migration across namespaces", decorators.RequiresDece
 				}
 				return ""
 			}).WithTimeout(time.Minute).WithPolling(2 * time.Second).ShouldNot(BeEmpty())
-			Expect(console.LoginToCirros(targetVMI)).To(Succeed())
+			Expect(console.LoginToFedora(targetVMI)).To(Succeed())
 			Expect(console.RunCommand(targetVMI, "cat /home/cirros/test/data.txt", 30*time.Second)).To(Succeed())
 		})
 
@@ -513,7 +513,7 @@ var _ = Describe(SIG("Live Migration across namespaces", decorators.RequiresDece
 
 			// TODO: Remove the RequiresRWOFsVMStateStorageClass once libvirt allows us to tell it to ignore the check
 			// for shared storage.
-			It("should decentralized migrate a VMI with persistent TPM+EFI enabled", decorators.RequiresDecentralizedLiveMigration, decorators.RequiresRWOFsVMStateStorageClass, Serial, func() {
+			It("[test_id:2818]should decentralized migrate a VMI with persistent TPM+EFI enabled", decorators.RequiresDecentralizedLiveMigration, decorators.RequiresRWOFsVMStateStorageClass, Serial, func() {
 				migrationID := fmt.Sprintf("mig-%s", rand.String(5))
 				By("Creating a VMI with TPM+EFI enabled")
 				sourceVMI := libvmifact.NewFedora(
@@ -570,7 +570,7 @@ var _ = Describe(SIG("Live Migration across namespaces", decorators.RequiresDece
 		)
 
 		BeforeEach(func() {
-			sourceVMI = libvmifact.NewCirros(
+			sourceVMI = libvmifact.NewAlpine(
 				libvmi.WithNamespace(testsuite.NamespaceTestDefault),
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
@@ -629,7 +629,7 @@ var _ = Describe(SIG("Live Migration across namespaces", decorators.RequiresDece
 			By("Waiting for the target migration object to disappear")
 			libwait.WaitForMigrationToDisappearWithTimeout(targetMigration, timeout)
 			By("Logging in and ensuring the source VM is still running")
-			Expect(console.LoginToCirros(sourceVMI)).To(Succeed())
+			Expect(console.LoginToAlpine(sourceVMI)).To(Succeed())
 			By("Checking that the receiving VM is in WaitingAsReceiver phase")
 			Eventually(func() virtv1.VirtualMachineInstancePhase {
 				targetVMI, err := virtClient.VirtualMachineInstance(targetVMI.Namespace).Get(context.Background(), targetVMI.Name, metav1.GetOptions{})
@@ -637,11 +637,11 @@ var _ = Describe(SIG("Live Migration across namespaces", decorators.RequiresDece
 				return targetVMI.Status.Phase
 			}).WithTimeout(time.Minute).WithPolling(2 * time.Second).Should(Equal(virtv1.WaitingForSync))
 		},
-			Entry("delete source migration", true),
-			Entry("delete target migration", false),
+			Entry("[test_id:6361]delete source migration", true),
+			Entry("[test_id:6362]delete target migration", false),
 		)
 
-		It("should properly propagate failure from target to source", func() {
+		It("[test_id:6363]should properly propagate failure from target to source", func() {
 			const timeout = 180
 			migrationID := fmt.Sprintf("mig-%s", rand.String(5))
 			By("starting the VirtualMachine")

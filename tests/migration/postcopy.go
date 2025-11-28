@@ -209,7 +209,7 @@ var _ = Describe(SIG("VM Post Copy Live Migration", decorators.RequiresTwoSchedu
 				By("creating a large VM with RunStrategyRerunOnFailure")
 				vmi := libvmifact.NewFedora(
 					libnet.WithMasqueradeNetworking(),
-					libvmi.WithMemoryRequest("3Gi"),
+					libvmi.WithMemoryRequest("1024Mi"),
 					libvmi.WithRng(),
 					libvmi.WithNamespace(testsuite.NamespaceTestDefault),
 				)
