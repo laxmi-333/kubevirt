@@ -211,7 +211,7 @@ var _ = Describe("[sig-storage] Storage configuration", decorators.SigStorage, d
 
 			By("creating a block volume")
 			dataVolume := libdv.NewDataVolume(
-				libdv.WithRegistryURLSource(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskCirros)),
+				libdv.WithRegistryURLSource(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskAlpine)),
 				libdv.WithStorage(libdv.StorageWithStorageClass(sc), libdv.StorageWithBlockVolumeMode()),
 			)
 			dataVolume, err := virtClient.CdiClient().CdiV1beta1().DataVolumes(testsuite.GetTestNamespace(nil)).Create(context.Background(), dataVolume, metav1.CreateOptions{})
@@ -226,9 +226,9 @@ var _ = Describe("[sig-storage] Storage configuration", decorators.SigStorage, d
 			)
 
 			By("setting the disk to use custom block sizes")
-			logicalSize := uint(16384)
-			physicalSize := uint(16384)
-			discardGranularity := uint(16384)
+			logicalSize := uint(1024)
+			physicalSize := uint(1024)
+			discardGranularity := uint(1024)
 			vmi.Spec.Domain.Devices.Disks[0].BlockSize = &v1.BlockSize{
 				Custom: &v1.CustomBlockSize{
 					Logical:            logicalSize,
@@ -261,7 +261,7 @@ var _ = Describe("[sig-storage] Storage configuration", decorators.SigStorage, d
 			}
 
 			dataVolume := libdv.NewDataVolume(
-				libdv.WithRegistryURLSource(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskCirros)),
+				libdv.WithRegistryURLSource(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskAlpine)),
 				libdv.WithStorage(libdv.StorageWithStorageClass(sc), libdv.StorageWithBlockVolumeMode()),
 			)
 			dataVolume, err := virtClient.CdiClient().CdiV1beta1().DataVolumes(testsuite.GetTestNamespace(nil)).Create(context.Background(), dataVolume, metav1.CreateOptions{})

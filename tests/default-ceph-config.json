@@ -1,11 +1,10 @@
 {
-    "storageClassRhel":        "rook-ceph-block",
-    "storageClassWindows":     "rook-ceph-block",
-    "storageRWXFileSystem":    "nfs-csi",
-    "storageRWXBlock":         "rook-ceph-block",
-    "storageRWOFileSystem":    "local",
-    "storageRWOBlock":         "rook-ceph-block",
-    "storageSnapshot":         "rook-ceph-block",
-    "storageVMState":          "rook-ceph-block",
-    "storageClassCSI":         "rook-ceph-block"
+  "storageClassRhel": "ocs-storagecluster-ceph-rbd-wffc",
+  "storageClassWindows": "ocs-storagecluster-ceph-rbd-wffc",
+  "storageRWXFileSystem": "ocs-storagecluster-ceph-rbd-wffc",
+  "storageRWXBlock": "ocs-storagecluster-ceph-rbd-wffc",
+  "storageRWOFileSystem": "ocs-storagecluster-ceph-rbd-wffc",
+  "storageRWOBlock": "ocs-storagecluster-ceph-rbd-wffc",
+  "storageSnapshot": "ocs-storagecluster-ceph-rbd-wffc",
+  "storageVMState": "ocs-storagecluster-ceph-rbd-wffc"
 }
