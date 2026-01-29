@@ -176,6 +176,7 @@ func EnsureDefaultKubevirtReadyWithTimeout(timeout time.Duration) {
 func EnsureKubevirtReadyWithTimeout(kv *v1.KubeVirt, timeout time.Duration) {
 	virtClient := kubevirt.Client()
 
+	flags.KubeVirtInstallNamespace = "openshift-cnv"
 	Eventually(matcher.ThisDeploymentWith(flags.KubeVirtInstallNamespace, "virt-operator"), 180*time.Second, 1*time.Second).
 		Should(matcher.HaveReadyReplicasNumerically(">", 0),
 			"virt-operator deployment is not ready")
