@@ -1144,7 +1144,7 @@ func Convert_v1_VirtualMachineInstance_To_api_Domain(vmi *v1.VirtualMachineInsta
 				return err
 			}
 
-			if c.PCINUMAAwareTopologyEnabled {
+			if c.PCINUMAAwareTopologyEnabled && c.Architecture.SupportPCIePlacement() {
 				if err := PlacePCIDevicesWithNUMAAlignment(&domain.Spec); err != nil {
 					log.Log.Reason(err).Warningf("Failed to process PCIe NUMA-aware topology, falling back to default placement")
 				}
@@ -1162,7 +1162,7 @@ func Convert_v1_VirtualMachineInstance_To_api_Domain(vmi *v1.VirtualMachineInsta
 		})
 	}
 
-	if val := vmi.Annotations[v1.PlacePCIDevicesOnRootComplex]; val == "true" {
+	if val := vmi.Annotations[v1.PlacePCIDevicesOnRootComplex]; val == "true" && c.Architecture.SupportPCIePlacement() {
 		if err := PlacePCIDevicesOnRootComplex(&domain.Spec); err != nil {
 			return err
 		}
