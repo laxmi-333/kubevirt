@@ -23,6 +23,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	goruntime "runtime"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -626,7 +627,11 @@ var _ = Describe("VirtualMachineInstance Mutator", func() {
 
 	It("should set PCI topology version v3 annotation on new VMI", func() {
 		vmiMeta, _, _ := getMetaSpecStatusFromAdmit()
-		Expect(vmiMeta.Annotations).To(HaveKeyWithValue(v1.PciTopologyVersionAnnotation, v1.PciTopologyVersionV3))
+		if goruntime.GOARCH == "s390x" {
+			Expect(vmiMeta.Annotations).ToNot(HaveKey(v1.PciTopologyVersionAnnotation))
+		} else {
+			Expect(vmiMeta.Annotations).To(HaveKeyWithValue(v1.PciTopologyVersionAnnotation, v1.PciTopologyVersionV3))
+		}
 	})
 
 	It("should not override existing PCI topology version annotation", func() {

@@ -85,7 +85,7 @@ func (mutator *VMIsMutator) Mutate(ar *admissionv1.AdmissionReview) *admissionv1
 			return webhookutils.ToAdmissionResponseError(err)
 		}
 
-		setDefaultPciTopologyVersion(&newVMI.ObjectMeta)
+		setDefaultPciTopologyVersion(&newVMI.ObjectMeta, newVMI.Spec.Architecture)
 
 		if newVMI.Spec.Domain.CPU.IsolateEmulatorThread {
 			_, emulatorThreadCompleteToEvenParityAnnotationExists := mutator.ClusterConfig.GetConfigFromKubeVirtCR().Annotations[v1.EmulatorThreadCompleteToEvenParity]
@@ -166,7 +166,11 @@ func markAsNonroot(vmi *v1.VirtualMachineInstance) {
 
 // setDefaultPciTopologyVersion sets the PCI topology version annotation to v3
 // if not already present. Used by both VMI and VM mutating webhooks on CREATE.
-func setDefaultPciTopologyVersion(meta *metav1.ObjectMeta) {
+// s390x does not use PCIe topology, so the annotation is not set for that architecture.
+func setDefaultPciTopologyVersion(meta *metav1.ObjectMeta, arch string) {
+	if arch == "s390x" {
+		return
+	}
 	if _, exists := meta.Annotations[v1.PciTopologyVersionAnnotation]; exists {
 		return
 	}

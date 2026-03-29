@@ -45,6 +45,11 @@ func (c *VirtualMachineController) detectPCITopologyAndAnnotate(vmi *v1.VirtualM
 		return nil
 	}
 
+	// s390x does not use PCIe topology; skip detection and annotation.
+	if vmi.Spec.Architecture == "s390x" {
+		return nil
+	}
+
 	if !vmi.IsRunning() {
 		return nil
 	}

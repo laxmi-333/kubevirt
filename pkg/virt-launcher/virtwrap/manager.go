@@ -1412,6 +1412,13 @@ func (l *LibvirtDomainManager) allocateHotplugPorts(
 ) (cli.VirDomain, error) {
 	logger := log.Log.Object(vmi)
 
+	// s390x uses a flat zPCI/CCW topology and does not support PCIe hierarchy
+	// (pcie-root-port controllers). Skip hotplug port pre-allocation entirely.
+	if vmi.Spec.Architecture == "s390x" {
+		logger.Info("Skipping hotplug port allocation for s390x architecture")
+		return l.setDomainSpecWithHooks(vmi, domainSpec)
+	}
+
 	placeholderCount, err := calculatePlaceholderCount(vmi)
 	if err != nil {
 		return nil, err
