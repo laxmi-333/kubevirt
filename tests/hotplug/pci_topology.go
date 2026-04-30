@@ -52,15 +52,15 @@ var _ = Describe("[sig-compute]PCI Topology", decorators.SigCompute, func() {
 	})
 
 	Context("v3 annotation", func() {
-		It("should be set on a new VMI", func() {
-			vmi := libvmifact.NewCirros()
+		It("[test_id:US77]should be set on a new VMI", func() {
+			vmi := libvmifact.NewAlpine()
 			vmi, err := virtClient.VirtualMachineInstance(testsuite.NamespaceTestDefault).Create(context.Background(), vmi, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			Expect(vmi.Annotations).To(HaveKeyWithValue(v1.PciTopologyVersionAnnotation, v1.PciTopologyVersionV3))
 		})
 
-		It("should be set on a new VM template", func() {
-			vmi := libvmifact.NewCirros()
+		It("[test_id:US78]should be set on a new VM template", func() {
+			vmi := libvmifact.NewAlpine()
 			vm := libvmi.NewVirtualMachine(vmi, libvmi.WithRunStrategy(v1.RunStrategyHalted))
 			vm, err := virtClient.VirtualMachine(testsuite.NamespaceTestDefault).Create(context.Background(), vm, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
@@ -69,8 +69,8 @@ var _ = Describe("[sig-compute]PCI Topology", decorators.SigCompute, func() {
 	})
 
 	Context("v3 PCI address stability", func() {
-		It("should preserve PCI addresses across VM restart", func() {
-			vmi := libvmifact.NewCirros()
+		It("[test_id:US80]should preserve PCI addresses across VM restart", func() {
+			vmi := libvmifact.NewAlpine()
 			vm := libvmi.NewVirtualMachine(vmi, libvmi.WithRunStrategy(v1.RunStrategyAlways))
 			vm, err := virtClient.VirtualMachine(testsuite.NamespaceTestDefault).Create(context.Background(), vm, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
@@ -79,7 +79,7 @@ var _ = Describe("[sig-compute]PCI Topology", decorators.SigCompute, func() {
 			Eventually(matcher.ThisVMIWith(vm.Namespace, vm.Name), 360, 1).Should(matcher.Exist())
 			runningVMI, err := virtClient.VirtualMachineInstance(vm.Namespace).Get(context.Background(), vm.Name, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
-			runningVMI = libwait.WaitUntilVMIReady(runningVMI, console.LoginToCirros)
+			runningVMI = libwait.WaitUntilVMIReady(runningVMI, console.LoginToAlpine)
 
 			By("Recording PCI fingerprint before restart")
 			fingerprintBefore := guestPCIFingerprint(runningVMI)
@@ -91,7 +91,7 @@ var _ = Describe("[sig-compute]PCI Topology", decorators.SigCompute, func() {
 			By("Waiting for VMI to be ready after restart")
 			runningVMI, err = virtClient.VirtualMachineInstance(vm.Namespace).Get(context.Background(), vm.Name, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
-			runningVMI = libwait.WaitUntilVMIReady(runningVMI, console.LoginToCirros)
+			runningVMI = libwait.WaitUntilVMIReady(runningVMI, console.LoginToAlpine)
 
 			By("Verifying PCI addresses are unchanged")
 			fingerprintAfter := guestPCIFingerprint(runningVMI)
@@ -102,7 +102,7 @@ var _ = Describe("[sig-compute]PCI Topology", decorators.SigCompute, func() {
 	Context("v2 frozen interface slot count", func() {
 		It("should use the frozen slot count and preserve addresses across restart", func() {
 			By("Creating a stopped VM with v2 annotations")
-			vmi := libvmifact.NewCirros()
+			vmi := libvmifact.NewAlpine()
 			vm := libvmi.NewVirtualMachine(vmi, libvmi.WithRunStrategy(v1.RunStrategyHalted))
 			vm, err := virtClient.VirtualMachine(testsuite.NamespaceTestDefault).Create(context.Background(), vm, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
@@ -122,7 +122,7 @@ var _ = Describe("[sig-compute]PCI Topology", decorators.SigCompute, func() {
 			By("Waiting for VMI to be ready")
 			runningVMI, err := virtClient.VirtualMachineInstance(vm.Namespace).Get(context.Background(), vm.Name, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
-			runningVMI = libwait.WaitUntilVMIReady(runningVMI, console.LoginToCirros)
+			runningVMI = libwait.WaitUntilVMIReady(runningVMI, console.LoginToAlpine)
 
 			By("Verifying VMI has v2 annotations")
 			Expect(runningVMI.Annotations).To(HaveKeyWithValue(v1.PciTopologyVersionAnnotation, v1.PciTopologyVersionV2))
@@ -138,7 +138,7 @@ var _ = Describe("[sig-compute]PCI Topology", decorators.SigCompute, func() {
 			By("Waiting for VMI to be ready after restart")
 			runningVMI, err = virtClient.VirtualMachineInstance(vm.Namespace).Get(context.Background(), vm.Name, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
-			runningVMI = libwait.WaitUntilVMIReady(runningVMI, console.LoginToCirros)
+			runningVMI = libwait.WaitUntilVMIReady(runningVMI, console.LoginToAlpine)
 
 			By("Verifying v2 annotations are preserved after restart")
 			Expect(runningVMI.Annotations).To(HaveKeyWithValue(v1.PciTopologyVersionAnnotation, v1.PciTopologyVersionV2))
@@ -149,22 +149,22 @@ var _ = Describe("[sig-compute]PCI Topology", decorators.SigCompute, func() {
 			Expect(fingerprintAfter).To(Equal(fingerprintBefore))
 		})
 
-		It("should produce different PCI addresses than v3", func() {
+		It("[test_id:US79]should produce different PCI addresses than v3", func() {
 			By("Creating a v3 VMI")
-			v3VMI := libvmifact.NewCirros()
+			v3VMI := libvmifact.NewAlpine()
 			v3VMI, err := virtClient.VirtualMachineInstance(testsuite.NamespaceTestDefault).Create(context.Background(), v3VMI, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
-			v3VMI = libwait.WaitUntilVMIReady(v3VMI, console.LoginToCirros)
+			v3VMI = libwait.WaitUntilVMIReady(v3VMI, console.LoginToAlpine)
 			v3Fingerprint := guestPCIFingerprint(v3VMI)
 
 			By("Creating a v2 VMI with frozen slot count of 9 (8 placeholders + 1 interface)")
-			v2VMI := libvmifact.NewCirros(
+			v2VMI := libvmifact.NewAlpine(
 				libvmi.WithAnnotation(v1.PciTopologyVersionAnnotation, v1.PciTopologyVersionV2),
 				libvmi.WithAnnotation(v1.PciInterfaceSlotCountAnnotation, "9"),
 			)
 			v2VMI, err = virtClient.VirtualMachineInstance(testsuite.NamespaceTestDefault).Create(context.Background(), v2VMI, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
-			v2VMI = libwait.WaitUntilVMIReady(v2VMI, console.LoginToCirros)
+			v2VMI = libwait.WaitUntilVMIReady(v2VMI, console.LoginToAlpine)
 			v2Fingerprint := guestPCIFingerprint(v2VMI)
 
 			By("Verifying v2 PCI addresses differ from v3")
@@ -174,9 +174,9 @@ var _ = Describe("[sig-compute]PCI Topology", decorators.SigCompute, func() {
 	})
 
 	Context("virt-handler topology detection", func() {
-		It("should re-detect v3 topology when annotation is removed from running VMI", func() {
+		It("[test_id:US75]should re-detect v3 topology when annotation is removed from running VMI", func() {
 			By("Creating and starting a v3 VM")
-			vmi := libvmifact.NewCirros()
+			vmi := libvmifact.NewAlpine()
 			vm := libvmi.NewVirtualMachine(vmi, libvmi.WithRunStrategy(v1.RunStrategyAlways))
 			vm, err := virtClient.VirtualMachine(testsuite.NamespaceTestDefault).Create(context.Background(), vm, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
@@ -184,7 +184,7 @@ var _ = Describe("[sig-compute]PCI Topology", decorators.SigCompute, func() {
 			Eventually(matcher.ThisVMIWith(vm.Namespace, vm.Name), 360, 1).Should(matcher.Exist())
 			runningVMI, err := virtClient.VirtualMachineInstance(vm.Namespace).Get(context.Background(), vm.Name, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
-			runningVMI = libwait.WaitUntilVMIReady(runningVMI, console.LoginToCirros)
+			runningVMI = libwait.WaitUntilVMIReady(runningVMI, console.LoginToAlpine)
 			Expect(runningVMI.Annotations).To(HaveKeyWithValue(v1.PciTopologyVersionAnnotation, v1.PciTopologyVersionV3))
 
 			By("Removing the PCI topology annotation from the running VMI")
@@ -203,9 +203,9 @@ var _ = Describe("[sig-compute]PCI Topology", decorators.SigCompute, func() {
 			}, 60*time.Second, 2*time.Second).Should(Succeed())
 		})
 
-		It("should re-detect v2 topology when annotations are removed from running VMI", func() {
+		It("[test_id:US81]should re-detect v2 topology when annotations are removed from running VMI", func() {
 			By("Creating a stopped VM with v2 annotations")
-			vmi := libvmifact.NewCirros()
+			vmi := libvmifact.NewAlpine()
 			vm := libvmi.NewVirtualMachine(vmi, libvmi.WithRunStrategy(v1.RunStrategyHalted))
 			vm, err := virtClient.VirtualMachine(testsuite.NamespaceTestDefault).Create(context.Background(), vm, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
@@ -224,7 +224,7 @@ var _ = Describe("[sig-compute]PCI Topology", decorators.SigCompute, func() {
 
 			runningVMI, err := virtClient.VirtualMachineInstance(vm.Namespace).Get(context.Background(), vm.Name, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
-			runningVMI = libwait.WaitUntilVMIReady(runningVMI, console.LoginToCirros)
+			runningVMI = libwait.WaitUntilVMIReady(runningVMI, console.LoginToAlpine)
 			Expect(runningVMI.Annotations).To(HaveKeyWithValue(v1.PciTopologyVersionAnnotation, v1.PciTopologyVersionV2))
 			Expect(runningVMI.Annotations).To(HaveKeyWithValue(v1.PciInterfaceSlotCountAnnotation, "9"))
 
@@ -248,9 +248,9 @@ var _ = Describe("[sig-compute]PCI Topology", decorators.SigCompute, func() {
 	})
 
 	Context("annotation propagation", func() {
-		It("should propagate PCI topology annotations from VMI to VM template", func() {
+		It("[test_id:US76]should propagate PCI topology annotations from VMI to VM template", func() {
 			By("Creating a stopped VM and removing the v3 annotation from the template")
-			vmi := libvmifact.NewCirros()
+			vmi := libvmifact.NewAlpine()
 			vm := libvmi.NewVirtualMachine(vmi, libvmi.WithRunStrategy(v1.RunStrategyHalted))
 			vm, err := virtClient.VirtualMachine(testsuite.NamespaceTestDefault).Create(context.Background(), vm, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())

@@ -127,7 +127,7 @@ var _ = Describe(SIG("VM Post Copy Live Migration", decorators.RequiresTwoSchedu
 			applyWithKubevirtCR      applySettingsType = "kubevirt"
 		)
 
-		DescribeTable("[test_id:4747] using", func(settingsType applySettingsType) {
+		DescribeTable("using", func(settingsType applySettingsType) {
 			vmi := libvmifact.NewFedora(libnet.WithMasqueradeNetworking())
 			vmi.Spec.Domain.Resources.Requests[k8sv1.ResourceMemory] = resource.MustParse("512Mi")
 			vmi.Spec.Domain.Devices.Rng = &v1.Rng{}
@@ -160,8 +160,8 @@ var _ = Describe(SIG("VM Post Copy Live Migration", decorators.RequiresTwoSchedu
 			libmigration.ConfirmVMIPostMigration(virtClient, vmi, migration)
 			libmigration.ConfirmMigrationMode(virtClient, vmi, v1.MigrationPostCopy)
 		},
-			Entry("a migration policy", applyWithMigrationPolicy),
-			Entry("the Kubevirt CR", Serial, applyWithKubevirtCR),
+			Entry("[test_id:4747]a migration policy", applyWithMigrationPolicy),
+			Entry("[test_id:4748]the Kubevirt CR", Serial, applyWithKubevirtCR),
 		)
 
 		Context("with a guest-agent-ping liveness probe", func() {
@@ -248,7 +248,7 @@ var _ = Describe(SIG("VM Post Copy Live Migration", decorators.RequiresTwoSchedu
 				removeVirtHandlerKillerPod()
 			})
 
-			It("and make sure VMs restart after failure", func() {
+			It("[test_id:8391]and make sure VMs restart after failure", func() {
 				By("creating a large VM with RunStrategyRerunOnFailure")
 				vmi := libvmifact.NewFedora(
 					libnet.WithMasqueradeNetworking(),

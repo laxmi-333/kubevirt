@@ -131,10 +131,10 @@ var _ = Describe("[rfe_id:588][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 			// Skip on s390x to avoid building and deploying an additional alpine image
 			It("[test_id:1466]should boot normally", func() {
 				By("Starting the VirtualMachineInstance")
-				vmi := libvmops.RunVMIAndExpectLaunch(libvmifact.NewCirros(overrideCustomLocation), libvmops.StartupTimeoutSecondsSmall)
+				vmi := libvmops.RunVMIAndExpectLaunch(libvmifact.NewAlpine(overrideCustomLocation), libvmops.StartupTimeoutSecondsSmall)
 
 				By("Verify VMI is booted")
-				Expect(console.LoginToCirros(vmi)).To(Succeed())
+				Expect(console.LoginToAlpine(vmi)).To(Succeed())
 			})
 		})
 
@@ -142,7 +142,7 @@ var _ = Describe("[rfe_id:588][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 
 	Describe("[rfe_id:273][crit:medium][vendor:cnv-qe@redhat.com][level:component]Starting with virtio-win", func() {
 		Context("with virtio-win as secondary disk", func() {
-			It("[test_id:1467]should boot and have the virtio as sata CDROM", func() {
+			It("[test_id:US21][test_id:1467]should boot and have the virtio as sata CDROM", func() {
 				vmi := libvmifact.NewAlpine(
 					libvmi.WithEphemeralCDRom("disk4", v1.DiskBusSATA, cd.ContainerDiskFor(cd.ContainerDiskVirtio)),
 				)
@@ -285,7 +285,7 @@ var _ = Describe("[rfe_id:588][crit:medium][vendor:cnv-qe@redhat.com][level:comp
 })
 
 func overrideCustomLocation(vmi *v1.VirtualMachineInstance) {
-	vmi.Spec.Volumes[0].ContainerDisk.Image = cd.ContainerDiskFor(cd.ContainerDiskCirrosCustomLocation)
+	vmi.Spec.Volumes[0].ContainerDisk.Image = cd.ContainerDiskFor(cd.ContainerDiskAlpineCustomLocation)
 	vmi.Spec.Volumes[0].ContainerDisk.Path = "/custom-disk/downloaded"
 }
 

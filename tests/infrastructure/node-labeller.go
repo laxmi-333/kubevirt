@@ -201,7 +201,7 @@ var _ = Describe(SIGSerial("Node-labeller", func() {
 			}).WithTimeout(timeout).WithPolling(1 * time.Second).ShouldNot(HaveOccurred())
 		})
 
-		It("[test_id:6995]should expose tsc frequency and tsc scalability", func() {
+		It("[test_id:US35][test_id:6995]should expose tsc frequency and tsc scalability", func() {
 			node := nodesWithKVM[0]
 			Expect(node.Labels).To(HaveKey("cpu-timer.node.kubevirt.io/tsc-frequency"))
 			Expect(node.Labels).To(HaveKey("cpu-timer.node.kubevirt.io/tsc-scalable"))

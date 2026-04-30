@@ -175,7 +175,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 			const labelKey = "subdomain"
 			const labelValue = "mysub"
 
-			vmi := libvmifact.NewCirros(
+			vmi := libvmifact.NewAlpineWithTestTooling(
 				libvmi.WithHostname(hostname),
 				withSubdomain(subdomain),
 				libvmi.WithLabel(labelKey, labelValue),
@@ -185,7 +185,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 			vmi = libvmops.RunVMIAndExpectLaunch(vmi, libvmops.StartupTimeoutSecondsHuge)
 
 			By("Starting hello world in the VM")
-			vmnetserver.StartTCPServer(vmi, port, console.LoginToCirros)
+			vmnetserver.StartTCPServer(vmi, port, console.LoginToAlpine)
 
 			By("Exposing headless service matching subdomain")
 			service := service.BuildHeadlessSpec(subdomain, port, port, labelKey, labelValue)
@@ -360,7 +360,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 				libmigration.ConfirmVMIPostMigration(virtClient, vmi, migration)
 			})
 
-			It("should migrate vmi and use Live Migration method with read-only disks", decorators.RequiresRWXBlock, func() {
+			It("[test_id:US26]should migrate vmi and use Live Migration method with read-only disks", decorators.RequiresRWXBlock, func() {
 				By("Defining a VMI with PVC disk and read-only CDRoms")
 				if !libstorage.HasCDI() {
 					Fail("Fail DataVolume tests when CDI is not present")
@@ -521,7 +521,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 				Expect(rootPortController).To(BeEmpty(), "libvirt should not add additional buses to the root one")
 			})
 
-			It("[test_id:9795]should migrate vmi with a usb disk", func() {
+			It("[test_id:US32][test_id:9795]should migrate vmi with a usb disk", func() {
 
 				vmi := libvmifact.NewAlpineWithTestTooling(
 					libvmi.WithEmptyDisk("uniqueusbdisk", v1.DiskBusUSB, resource.MustParse("128Mi")),
@@ -789,7 +789,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 			})
 		})
 		Context("with setting guest time", func() {
-			It("[test_id:4114]should set an updated time after a migration", func() {
+			It("[test_id:US63][test_id:4114]should set an updated time after a migration", func() {
 				vmi := libvmifact.NewFedora(libnet.WithMasqueradeNetworking(), libvmi.WithMemoryRequest(fedoraVMSize), libvmi.WithRng())
 
 				By("Starting the VirtualMachineInstance")
@@ -1178,7 +1178,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 					)
 				}, console.LoginToAlpine),
 
-				Entry("[test_id:8611] with CD + CloudInit + SA + ConfigMap + Secret + DownwardAPI", func() *v1.VirtualMachineInstance {
+				Entry("[test_id:US55][test_id:8611] with CD + CloudInit + SA + ConfigMap + Secret + DownwardAPI", func() *v1.VirtualMachineInstance {
 					return prepareVMIWithAllVolumeSources(testsuite.NamespacePrivileged, false)
 				}, console.LoginToFedora),
 
@@ -1264,7 +1264,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 					)
 				}, console.LoginToAlpine),
 
-				Entry("with CD + CloudInit + SA + ConfigMap + Secret + DownwardAPI + Kernel Boot", func() *v1.VirtualMachineInstance {
+				Entry("[test_id:US56]with CD + CloudInit + SA + ConfigMap + Secret + DownwardAPI + Kernel Boot", func() *v1.VirtualMachineInstance {
 					return prepareVMIWithAllVolumeSources(testsuite.NamespacePrivileged, false)
 				}, console.LoginToFedora),
 
@@ -2035,7 +2035,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 
 				It("should be able to properly abort migration", func() {
 					By("Starting a VirtualMachineInstance")
-					vmi := libvmifact.NewGuestless(
+					vmi := libvmifact.NewAlpine(
 						libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 						libvmi.WithNetwork(v1.DefaultPodNetwork()),
 					)
@@ -2183,7 +2183,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 		Context("with unsupported machine type", Serial, func() {
 
 			It("should prevent migration scheduling", func() {
-				vmi := libvmifact.NewGuestless(libnet.WithMasqueradeNetworking())
+				vmi := libvmifact.NewAlpine(libnet.WithMasqueradeNetworking())
 				vmi.Namespace = testsuite.GetTestNamespace(vmi)
 
 				vmi = libvmops.RunVMIAndExpectLaunch(vmi, libvmops.StartupTimeoutSecondsSmall)
@@ -2319,7 +2319,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 	})
 
 	Context(" with CPU pinning and huge pages", Serial, decorators.RequiresTwoWorkerNodesWithCPUManager, decorators.RequiresHugepages2Mi, func() {
-		It("should not make migrations fail", func() {
+		It("[test_id:US57]should not make migrations fail", func() {
 			var err error
 			cpuVMI := libvmifact.NewAlpine(
 				libvmi.WithNamespace(testsuite.GetTestNamespace(nil)),
@@ -2341,7 +2341,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 			libmigration.RunMigrationAndExpectToCompleteWithDefaultTimeout(virtClient, migration)
 		})
 		Context("and NUMA passthrough", decorators.RequiresTwoWorkerNodesWithCPUManager, decorators.RequiresHugepages2Mi, func() {
-			It("should not make migrations fail", func() {
+			It("[test_id:US58]should not make migrations fail", func() {
 				cpuVMI := libvmifact.NewAlpine(
 					libvmi.WithNamespace(testsuite.GetTestNamespace(nil)),
 					libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
@@ -2494,7 +2494,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 			libnode.RemoveLabelFromNode(nodes[1].Name, testLabel1)
 		})
 
-		It("should successfully update a VMI's CPU set on migration", func() {
+		It("[test_id:US33]should successfully update a VMI's CPU set on migration", func() {
 
 			By("starting a VMI on the first node of the list")
 			libnode.AddLabelToNode(nodes[0].Name, testLabel1, "true")
@@ -2640,7 +2640,7 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 	Context("with a live-migration in flight", func() {
 		It("there should always be a single active migration per VMI", decorators.Conformance, func() {
 			By("Starting a VMI")
-			vmi := libvmifact.NewGuestless(
+			vmi := libvmifact.NewAlpine(
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
 			)
@@ -2689,8 +2689,8 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 			}
 
 			It("invtsc feature exists", decorators.Invtsc, func() {
-				vmi := libvmi.New(
-					libvmi.WithMemoryRequest("1Mi"),
+				vmi := libvmifact.NewAlpine(
+					libvmi.WithMemoryRequest("128Mi"),
 					libvmi.WithCPUFeature("invtsc", "require"),
 				)
 				vmi = libvmops.RunVMIAndExpectLaunch(vmi, libvmops.StartupTimeoutSecondsHuge)

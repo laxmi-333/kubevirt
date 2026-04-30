@@ -216,7 +216,7 @@ var _ = Describe(SIG("VM Live Migration triggered by evacuation", decorators.Req
 
 		Context("VirtualMachineInstanceEvictionRequested condition", func() {
 			It("should set VirtualMachineInstanceEvictionRequested condition when VMI marked for eviction", func() {
-				vmi := libvmifact.NewCirros(
+				vmi := libvmifact.NewAlpine(
 					libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 					libvmi.WithNetwork(v1.DefaultPodNetwork()),
 					libvmi.WithEvictionStrategy(v1.EvictionStrategyLiveMigrate),
@@ -267,7 +267,7 @@ var _ = Describe(SIG("VM Live Migration triggered by evacuation", decorators.Req
 
 				It("should keep VirtualMachineInstanceEvictionRequested condition when migration fails", func() {
 					By("Starting the VirtualMachineInstance")
-					vmi := libvmifact.NewCirros(
+					vmi := libvmifact.NewAlpine(
 						libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 						libvmi.WithNetwork(v1.DefaultPodNetwork()),
 						libvmi.WithAnnotation(v1.FuncTestForceLauncherMigrationFailureAnnotation, ""),

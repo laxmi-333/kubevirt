@@ -43,15 +43,15 @@ var _ = Describe("[crit:medium][vendor:cnv-qe@redhat.com][level:component][sig-c
 
 	Describe("[crit:medium][vendor:cnv-qe@redhat.com][level:component] A VirtualMachineInstance with default sound support", func() {
 
-		It("should create an ich9 sound device on empty model", func() {
-			vmi := libvmifact.NewCirros()
+		It("[test_id:US16]should create an ich9 sound device on empty model", func() {
+			vmi := libvmifact.NewAlpine()
 			vmi.Spec.Domain.Devices.Sound = &v1.SoundDevice{
 				Name: "test-audio-device",
 			}
 			vmi, err := kubevirt.Client().VirtualMachineInstance(testsuite.NamespaceTestDefault).Create(context.Background(), vmi, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 
-			vmi = libwait.WaitUntilVMIReady(vmi, console.LoginToCirros)
+			vmi = libwait.WaitUntilVMIReady(vmi, console.LoginToAlpine)
 			err = checkICH9AudioDeviceInGuest(vmi)
 			Expect(err).ToNot(HaveOccurred(), "ICH9 sound device was no found")
 		})

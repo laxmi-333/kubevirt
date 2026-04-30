@@ -71,7 +71,7 @@ var _ = Describe("[sig-monitoring]VM Monitoring", decorators.SigMonitoring, func
 		var sharedVMI *v1.VirtualMachineInstance
 
 		BeforeAll(func() {
-			sharedVMI = libvmops.RunVMIAndExpectLaunch(libvmifact.NewGuestless(), libvmops.StartupTimeoutSecondsHuge)
+			sharedVMI = libvmops.RunVMIAndExpectLaunch(libvmifact.NewAlpine(), libvmops.StartupTimeoutSecondsHuge)
 		})
 
 		AfterAll(func() {
@@ -114,7 +114,7 @@ var _ = Describe("[sig-monitoring]VM Monitoring", decorators.SigMonitoring, func
 		}
 
 		It("Should be available for a running VM", func() {
-			vm := createRunningVM(virtClient, libvmifact.NewGuestless(), v1.RunStrategyAlways, false)
+			vm := createRunningVM(virtClient, libvmifact.NewAlpine(), v1.RunStrategyAlways, false)
 
 			By("Checking that the VM metrics are available")
 			metricLabels := map[string]string{"name": vm.Name, "namespace": vm.Namespace}
@@ -124,7 +124,7 @@ var _ = Describe("[sig-monitoring]VM Monitoring", decorators.SigMonitoring, func
 		})
 
 		It("Should be available for a paused VM", func() {
-			vm := createRunningVM(virtClient, libvmifact.NewGuestless(), v1.RunStrategyAlways, true)
+			vm := createRunningVM(virtClient, libvmifact.NewAlpine(), v1.RunStrategyAlways, true)
 
 			By("Pausing the VM")
 			err := virtClient.VirtualMachineInstance(vm.Namespace).Pause(context.Background(), vm.Name, &v1.PauseOptions{})
@@ -142,7 +142,7 @@ var _ = Describe("[sig-monitoring]VM Monitoring", decorators.SigMonitoring, func
 
 		It("Should not be available for a stopped VM", func() {
 			By("Create a stopped VirtualMachine")
-			vm := createRunningVM(virtClient, libvmifact.NewGuestless(), v1.RunStrategyHalted, false)
+			vm := createRunningVM(virtClient, libvmifact.NewAlpine(), v1.RunStrategyHalted, false)
 
 			By("Checking that the VM metrics are not available")
 			metricLabels := map[string]string{"name": vm.Name, "namespace": vm.Namespace}
@@ -192,7 +192,7 @@ var _ = Describe("[sig-monitoring]VM Monitoring", decorators.SigMonitoring, func
 
 		It("Snapshot succeeded timestamp metric values should be correct", func() {
 			By("Creating a Virtual Machine")
-			vm := createRunningVM(virtClient, libvmifact.NewGuestless(), v1.RunStrategyAlways, false)
+			vm := createRunningVM(virtClient, libvmifact.NewAlpine(), v1.RunStrategyAlways, false)
 
 			By("Creating a snapshot of the Virtual Machine")
 			snapshot := libstorage.NewSnapshot(vm.Name, vm.Namespace)
@@ -275,7 +275,7 @@ var _ = Describe("[sig-monitoring]VM Monitoring", decorators.SigMonitoring, func
 		}
 
 		It("should ensure a running VM has dirty rate metrics", func() {
-			vm := createRunningVM(virtClient, libvmifact.NewGuestless(), v1.RunStrategyAlways, false)
+			vm := createRunningVM(virtClient, libvmifact.NewAlpine(), v1.RunStrategyAlways, false)
 
 			By("Checking that the VM metrics are available")
 			getDirtyRateMetricValue(vm)
@@ -319,7 +319,7 @@ var _ = Describe("[sig-monitoring]VM Monitoring", decorators.SigMonitoring, func
 	Context("Cluster VM metrics", func() {
 		It("kubevirt_number_of_vms should reflect the number of VMs", func() {
 			for i := 0; i < 5; i++ {
-				vmi := libvmifact.NewGuestless()
+				vmi := libvmifact.NewAlpine()
 				vm := libvmi.NewVirtualMachine(vmi)
 				_, err := virtClient.VirtualMachine(testsuite.GetTestNamespace(nil)).Create(context.Background(), vm, metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())
@@ -410,7 +410,7 @@ var _ = Describe("[sig-monitoring]VM Monitoring", decorators.SigMonitoring, func
 
 		It("[test_id:9260] should fire OrphanedVirtualMachineInstances alert", func() {
 			By("starting VMI")
-			vmi := libvmifact.NewGuestless()
+			vmi := libvmifact.NewAlpine()
 			libvmops.RunVMIAndExpectLaunch(vmi, libvmops.StartupTimeoutSecondsHuge)
 
 			By("delete virt-handler daemonset")

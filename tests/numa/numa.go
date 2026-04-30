@@ -36,7 +36,7 @@ var _ = Describe("[sig-compute]NUMA", Serial, decorators.SigCompute, func() {
 		virtClient = kubevirt.Client()
 	})
 
-	It("[test_id:7299] topology should be mapped to the guest and hugepages should be allocated",
+	It("[test_id:US42][test_id:7299] topology should be mapped to the guest and hugepages should be allocated",
 		decorators.RequiresNodeWithCPUManager, decorators.RequiresHugepages2Mi, func() {
 			var err error
 			cpuVMI := libvmifact.NewAlpine()

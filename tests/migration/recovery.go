@@ -148,10 +148,10 @@ var _ = Describe("[sig-compute]Migration recovery", decorators.SigCompute, decor
 		Expect(err).NotTo(HaveOccurred())
 		Expect(pvc.Labels).To(HaveKeyWithValue("persistent-state-for", vmi.Name))
 	},
-		Entry("failure", decorators.NoFlakeCheck, false, false),
-		Entry("success", decorators.NoFlakeCheck, true, false),
-		Entry("failure [Serial]", decorators.FlakeCheck, Serial, false, true),
-		Entry("success [Serial]", decorators.FlakeCheck, Serial, true, true),
+		Entry("[test_id:US9]failure", decorators.NoFlakeCheck, false, false),
+		Entry("[test_id:US10]success", decorators.NoFlakeCheck, true, false),
+		Entry("[test_id:US11]failure [Serial]", decorators.FlakeCheck, Serial, false, true),
+		Entry("[test_id:US12]success [Serial]", decorators.FlakeCheck, Serial, true, true),
 	)
 })
 
