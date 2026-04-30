@@ -208,7 +208,7 @@ var _ = Describe("[sig-compute]CPU Hotplug", decorators.SigCompute, decorators.S
 			Eventually(ThisVM(vm), 4*time.Minute, 2*time.Second).Should(HaveConditionMissingOrFalse(v1.VirtualMachineRestartRequired))
 		})
 
-		It("[test_id:10822]should successfully plug guaranteed vCPUs", decorators.RequiresTwoWorkerNodesWithCPUManager, func() {
+		It("[test_id:US60][test_id:10822]should successfully plug guaranteed vCPUs", decorators.RequiresTwoWorkerNodesWithCPUManager, func() {
 			checks.ExpectAtLeastTwoWorkerNodesWithCPUManager(virtClient)
 			const maxSockets uint32 = 3
 

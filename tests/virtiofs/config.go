@@ -69,7 +69,7 @@ var _ = Describe("[sig-compute] vitiofs config volumes", decorators.SigCompute, 
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		It("Should be the mounted virtiofs layout the same for a pod and vmi", func() {
+		It("[test_id:US68]Should be the mounted virtiofs layout the same for a pod and vmi", func() {
 			expectedOutput := "value1value2value3"
 
 			By("Running VMI")
@@ -127,7 +127,7 @@ var _ = Describe("[sig-compute] vitiofs config volumes", decorators.SigCompute, 
 			}
 		})
 
-		It("Should be the mounted virtiofs layout the same for a pod and vmi", func() {
+		It("[test_id:US69]Should be the mounted virtiofs layout the same for a pod and vmi", func() {
 			expectedOutput := "adminredhat"
 
 			By("Running VMI")
@@ -170,7 +170,7 @@ var _ = Describe("[sig-compute] vitiofs config volumes", decorators.SigCompute, 
 
 		serviceAccountPath := config.ServiceAccountSourceDir
 
-		It("Should be the namespace and token the same for a pod and vmi with virtiofs", func() {
+		It("[test_id:US66]Should be the namespace and token the same for a pod and vmi with virtiofs", func() {
 			serviceAccountVolumeName := "default-disk"
 
 			By("Running VMI")
@@ -229,7 +229,7 @@ var _ = Describe("[sig-compute] vitiofs config volumes", decorators.SigCompute, 
 		testLabelVal := "downwardAPIValue"
 		expectedOutput := testLabelKey + "=" + "\"" + testLabelVal + "\""
 
-		It("Should be the namespace and token the same for a pod and vmi with virtiofs", func() {
+		It("[test_id:US67]Should be the namespace and token the same for a pod and vmi with virtiofs", func() {
 
 			By("Running VMI")
 			vmi := libvmifact.NewFedora(

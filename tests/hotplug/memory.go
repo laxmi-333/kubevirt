@@ -150,11 +150,11 @@ var _ = Describe("[sig-compute]Memory Hotplug", decorators.SigCompute, decorator
 				return nil
 			}).WithPolling(2 * time.Second).WithTimeout(30 * time.Second).Should(Succeed())
 		},
-			Entry("with a common VM"),
-			Entry("with 2Mi pagesize hugepages VM", decorators.RequiresHugepages2Mi, libvmi.WithHugepages("2Mi")),
+			Entry("[test_id:US36]with a common VM"),
+			Entry("[test_id:US37]with 2Mi pagesize hugepages VM", decorators.RequiresHugepages2Mi, libvmi.WithHugepages("2Mi")),
 		)
 
-		It("[test_id:10824]after a hotplug memory and a restart the new memory value should be the base for the VM", func() {
+		It("[test_id:US38][test_id:10824]after a hotplug memory and a restart the new memory value should be the base for the VM", func() {
 			By("Creating a VM")
 			guest := resource.MustParse("1Gi")
 			vm, vmi := createHotplugVM(nil, 0)
@@ -194,7 +194,7 @@ var _ = Describe("[sig-compute]Memory Hotplug", decorators.SigCompute, decorator
 			Expect(vm.Spec.Template.Spec.Domain.Memory.Guest.Value()).To(Equal(newGuestMemory.Value()))
 		})
 
-		It("[test_id:10825]should successfully hotplug Memory and CPU in parallel", func() {
+		It("[test_id:US39][test_id:10825]should successfully hotplug Memory and CPU in parallel", func() {
 			By("Creating a VM")
 			guest := resource.MustParse("1Gi")
 			newSockets := uint32(2)
@@ -232,7 +232,7 @@ var _ = Describe("[sig-compute]Memory Hotplug", decorators.SigCompute, decorator
 			Expect(vmi.Spec.Domain.Resources.Requests.Memory().Value()).To(Equal(newGuestMemory.Value()))
 		})
 
-		It("should successfully hotplug memory when adding guest.memory to a VM", func() {
+		It("[test_id:US40]should successfully hotplug memory when adding guest.memory to a VM", func() {
 			By("Creating a VM")
 			guest := resource.MustParse("1Gi")
 			vmi := libvmifact.NewAlpine(libnet.WithMasqueradeNetworking(), libvmi.WithMemoryRequest(guest.String()))
@@ -290,7 +290,7 @@ var _ = Describe("[sig-compute]Memory Hotplug", decorators.SigCompute, decorator
 		// This is needed as the first hotplug attaches the virtio-mem device
 		// while the next ones only update the device. This test exercises
 		// both cases
-		It("should successfully hotplug memory twice", func() {
+		It("[test_id:US41]should successfully hotplug memory twice", func() {
 			By("Creating a VM")
 			vm, vmi := createHotplugVM(nil, 0)
 
@@ -338,7 +338,7 @@ var _ = Describe("[sig-compute]Memory Hotplug", decorators.SigCompute, decorator
 			}
 		})
 
-		It("should detect a failed memory hotplug", func() {
+		It("[test_id:US65][test_id:6451]should detect a failed memory hotplug", func() {
 			By("Creating a VM")
 			guest := resource.MustParse("1Gi")
 			vmi := libvmifact.NewAlpine(

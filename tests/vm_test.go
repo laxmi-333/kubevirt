@@ -170,7 +170,7 @@ var _ = Describe("[rfe_id:1177][crit:medium][vendor:cnv-qe@redhat.com][level:com
 
 		It("[test_id:3161]should carry vm.template.spec.annotations to VMI and ignore vm ones", decorators.Conformance, func() {
 			vm := libvmi.NewVirtualMachine(
-				libvmifact.NewGuestless(libvmi.WithAnnotation("test.vm.template.spec.annotation", "propagated")),
+				libvmifact.NewAlpine(libvmi.WithAnnotation("test.vm.template.spec.annotation", "propagated")),
 			)
 			vm.Annotations = map[string]string{"test.vm.annotation": "nopropagated"}
 			vm, err = virtClient.VirtualMachine(testsuite.GetTestNamespace(vm)).Create(context.Background(), vm, metav1.CreateOptions{})
@@ -651,7 +651,7 @@ var _ = Describe("[rfe_id:1177][crit:medium][vendor:cnv-qe@redhat.com][level:com
 
 			It("should restart a failed VMI", func() {
 				By("Creating a VM with RunStrategyRerunOnFailure")
-				vm := libvmi.NewVirtualMachine(libvmifact.NewGuestless(), libvmi.WithRunStrategy(v1.RunStrategyRerunOnFailure))
+				vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine(), libvmi.WithRunStrategy(v1.RunStrategyRerunOnFailure))
 				vm, err := virtClient.VirtualMachine(testsuite.GetTestNamespace(vm)).Create(context.Background(), vm, metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())
 
@@ -681,7 +681,7 @@ var _ = Describe("[rfe_id:1177][crit:medium][vendor:cnv-qe@redhat.com][level:com
 		Context("Using RunStrategyOnce", func() {
 			It("Should leave a failed VMI", func() {
 				By("creating a VM with RunStrategyOnce")
-				vm := libvmi.NewVirtualMachine(libvmifact.NewGuestless(), libvmi.WithRunStrategy(v1.RunStrategyOnce))
+				vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine(), libvmi.WithRunStrategy(v1.RunStrategyOnce))
 				vm, err := virtClient.VirtualMachine(testsuite.GetTestNamespace(vm)).Create(context.Background(), vm, metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())
 
@@ -712,7 +712,7 @@ var _ = Describe("[rfe_id:1177][crit:medium][vendor:cnv-qe@redhat.com][level:com
 
 			DescribeTable("with a failing VMI and the kubevirt.io/keep-launcher-alive-after-failure annotation", func(keepLauncher string) {
 				By("creating a Running VM")
-				vm := libvmi.NewVirtualMachine(libvmifact.NewGuestless(
+				vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine(
 					libvmi.WithAnnotation(v1.KeepLauncherAfterFailureAnnotation, keepLauncher),
 					libvmi.WithAnnotation(v1.FuncTestLauncherFailFastAnnotation, ""),
 				), libvmi.WithRunStrategy(v1.RunStrategyOnce))
@@ -769,7 +769,7 @@ var _ = Describe("[rfe_id:1177][crit:medium][vendor:cnv-qe@redhat.com][level:com
 	})
 
 	DescribeTable("[release-blocker][test_id:299][test_id:264]should create and delete a VM using all supported API versions", decorators.Conformance, func(version string) {
-		vm := libvmi.NewVirtualMachine(libvmifact.NewGuestless(), libvmi.WithRunStrategy(v1.RunStrategyAlways))
+		vm := libvmi.NewVirtualMachine(libvmifact.NewAlpine(), libvmi.WithRunStrategy(v1.RunStrategyAlways))
 		vm.APIVersion = version
 
 		By("Creating VM")
@@ -852,7 +852,7 @@ var _ = Describe("[rfe_id:1177][crit:medium][vendor:cnv-qe@redhat.com][level:com
 		)
 
 		BeforeEach(func() {
-			vmi = libvmifact.NewGuestless()
+			vmi = libvmifact.NewAlpine()
 			vm = libvmi.NewVirtualMachine(vmi, libvmi.WithRunStrategy(v1.RunStrategyAlways))
 			Expect(vm.Finalizers).To(BeEmpty())
 			vm.Finalizers = append(vm.Finalizers, customFinalizer)

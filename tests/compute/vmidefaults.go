@@ -49,7 +49,7 @@ var _ = Describe(SIG("VMIDefaults", func() {
 
 		It("[test_id:4115]Should be applied to VMIs", func() {
 			// create VMI with missing disk target
-			vmi := libvmi.New(
+			vmi := libvmifact.NewAlpine(
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
 				libvmi.WithMemoryRequest("8192Ki"),
@@ -79,7 +79,7 @@ var _ = Describe(SIG("VMIDefaults", func() {
 
 		BeforeEach(func() {
 			// create VMI with missing disk target
-			vmi = libvmi.New(
+			vmi = libvmifact.NewGuestless(
 				libvmi.WithInterface(libvmi.InterfaceDeviceWithMasqueradeBinding()),
 				libvmi.WithNetwork(v1.DefaultPodNetwork()),
 				libvmi.WithMemoryRequest("128Mi"),
@@ -114,6 +114,15 @@ var _ = Describe(SIG("VMIDefaults", func() {
 					Function: "0x0",
 				},
 			}
+			if testsuite.Arch == testsuite.ArchS390x {
+				expected.Model = "virtio"
+				expected.Address = &api.Address{
+					Type:  api.AddressCCW,
+					CSSID: "0xfe",
+					SSID:  "0x0",
+					DevNo: "0x0003",
+				}
+			}
 			if kvConfiguration.VirtualMachineOptions != nil && kvConfiguration.VirtualMachineOptions.DisableFreePageReporting != nil {
 				expected.FreePageReporting = "off"
 			} else {
@@ -123,11 +132,34 @@ var _ = Describe(SIG("VMIDefaults", func() {
 			Expect(*domain.Devices.Ballooning).To(Equal(expected), "Default to virtio model and 10 seconds pooling")
 		})
 
-		DescribeTable("Should override period in domain if present in virt-config ", Serial, func(period uint32, expected api.MemBalloon) {
+		DescribeTable("Should override period in domain if present in virt-config ", Serial, func(period uint32) {
 			By("Adding period to virt-config")
 			kvConfigurationCopy := kvConfiguration.DeepCopy()
 			kvConfigurationCopy.MemBalloonStatsPeriod = &period
 			config.UpdateKubeVirtConfigValueAndWait(*kvConfigurationCopy)
+
+			expected := api.MemBalloon{
+				Model: "virtio-non-transitional",
+				Address: &api.Address{
+					Type:     api.AddressPCI,
+					Domain:   "0x0000",
+					Bus:      "0x07",
+					Slot:     "0x00",
+					Function: "0x0",
+				},
+			}
+			if testsuite.Arch == testsuite.ArchS390x {
+				expected.Model = "virtio"
+				expected.Address = &api.Address{
+					Type:  api.AddressCCW,
+					CSSID: "0xfe",
+					SSID:  "0x0",
+					DevNo: "0x0003",
+				}
+			}
+			if period > 0 {
+				expected.Stats = &api.Stats{Period: uint(period)}
+			}
 			if kvConfiguration.VirtualMachineOptions != nil && kvConfiguration.VirtualMachineOptions.DisableFreePageReporting != nil {
 				expected.FreePageReporting = "off"
 			} else {
@@ -148,29 +180,8 @@ var _ = Describe(SIG("VMIDefaults", func() {
 			Expect(domain.Devices.Ballooning).ToNot(BeNil(), "There should be memballoon device")
 			Expect(*domain.Devices.Ballooning).To(Equal(expected))
 		},
-			Entry("[test_id:4557]with period 12", uint32(12), api.MemBalloon{
-				Model: "virtio-non-transitional",
-				Stats: &api.Stats{
-					Period: 12,
-				},
-				Address: &api.Address{
-					Type:     api.AddressPCI,
-					Domain:   "0x0000",
-					Bus:      "0x07",
-					Slot:     "0x00",
-					Function: "0x0",
-				},
-			}),
-			Entry("[test_id:4558]with period 0", uint32(0), api.MemBalloon{
-				Model: "virtio-non-transitional",
-				Address: &api.Address{
-					Type:     api.AddressPCI,
-					Domain:   "0x0000",
-					Bus:      "0x07",
-					Slot:     "0x00",
-					Function: "0x0",
-				},
-			}),
+			Entry("[test_id:4557]with period 12", uint32(12)),
+			Entry("[test_id:4558]with period 0", uint32(0)),
 		)
 
 		It("[test_id:4559]Should not be present in domain ", func() {

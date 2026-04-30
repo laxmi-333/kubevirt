@@ -202,12 +202,12 @@ var _ = Describe("[sig-compute] Hyper-V enlightenments", decorators.SigCompute, 
 		},
 			Entry("hyperv and cpu features should be auto filled when EVMCS is enabled", decorators.VMX, &v1.FeatureState{Enabled: virtpointer.P(true)}),
 			Entry("EVMCS should be enabled when vmi.Spec.Domain.Features.Hyperv.EVMCS is set but the EVMCS.Enabled field is nil ", decorators.VMX, &v1.FeatureState{Enabled: nil}),
-			Entry("Verify that features aren't applied when enabled is false", &v1.FeatureState{Enabled: virtpointer.P(false)}),
+			Entry("[test_id:US59]Verify that features aren't applied when enabled is false", &v1.FeatureState{Enabled: virtpointer.P(false)}),
 		)
 	})
 
 	Context("VMI with HyperV passthrough", func() {
-		It("should be usable and non-migratable", func() {
+		It("[test_id:US34]should be usable and non-migratable", func() {
 			vmi := libvmifact.NewAlpine(withHypervPassthrough())
 			vmi = libvmops.RunVMIAndExpectLaunch(vmi, libvmops.StartupTimeoutSecondsSmall)
 

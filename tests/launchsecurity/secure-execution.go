@@ -45,7 +45,7 @@ import (
 
 var _ = Describe("[sig-compute]IBM Secure Execution", decorators.SecureExecution, decorators.SigCompute, decorators.RequiresS390X, Serial, func() {
 	Context("Node Labels", func() {
-		It("Should have nodes with Secure Execution Label", func() {
+		It("[test_id:SE1]Should have nodes with Secure Execution Label", func() {
 			virtclient := kubevirt.Client()
 			nodes := libnode.GetAllSchedulableNodes(virtclient)
 			hasNodeWithSELabel := false
@@ -101,7 +101,7 @@ var _ = Describe("[sig-compute]IBM Secure Execution", decorators.SecureExecution
 			Expect(kubevirt.Client().VirtualMachineInstance(vmi.Namespace).SoftReboot(context.Background(), vmi.Name)).To(Succeed())
 		})
 
-		It("Should launch a Secure Execution VM", func() {
+		It("[test_id:SE2]Should launch a Secure Execution VM", func() {
 			By("Verifying that the VM is running in Secure Execution Mode")
 			Expect(console.LoginToFedora(vmi)).To(Succeed())
 			output, err := console.RunCommandAndStoreOutput(vmi, "cat /sys/firmware/uv/prot_virt_guest", commandTimeout)
