@@ -144,12 +144,12 @@ var _ = Describe(SIG("DataVolume Integration", func() {
 				Fail("Fail when volume expansion storage class not available")
 			}
 
-			imageUrl := cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskCirros)
+			imageUrl := cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskFedoraTestTooling)
 			dataVolume := libdv.NewDataVolume(
 				libdv.WithRegistryURLSourceAndPullMethod(imageUrl, cdiv1.RegistryPullNode),
 				libdv.WithStorage(
 					libdv.StorageWithStorageClass(sc),
-					libdv.StorageWithVolumeSize(cd.CirrosVolumeSize),
+					libdv.StorageWithVolumeSize(cd.FedoraVolumeSize),
 					libdv.StorageWithAccessMode(k8sv1.ReadWriteOnce),
 					libdv.StorageWithVolumeMode(volumeMode),
 				),
@@ -161,7 +161,7 @@ var _ = Describe(SIG("DataVolume Integration", func() {
 			vmi = libvmops.RunVMIAndExpectLaunch(vmi, 500)
 
 			By("Expecting the VirtualMachineInstance console")
-			Expect(console.LoginToCirros(vmi)).To(Succeed())
+			Expect(console.LoginToFedora(vmi)).To(Succeed())
 
 			By("Expanding PVC")
 			pvc, err := virtClient.CoreV1().PersistentVolumeClaims(dataVolume.Namespace).Get(context.Background(), dataVolume.Name, metav1.GetOptions{})
@@ -192,7 +192,7 @@ var _ = Describe(SIG("DataVolume Integration", func() {
 			}, 360).Should(Succeed())
 
 			Expect(console.SafeExpectBatch(vmi, []expect.Batcher{
-				&expect.BSnd{S: "sudo /sbin/resize-filesystem /dev/root /run/resize.rootfs /dev/console && echo $?\n"},
+				&expect.BSnd{S: "sudo /usr/sbin/resize2fs  /dev/root /run/resize.rootfs /dev/console && echo $?\n"},
 				&expect.BExp{R: "0"},
 			}, 30)).To(Succeed(), "failed to resize root")
 
@@ -229,11 +229,26 @@ var _ = Describe(SIG("DataVolume Integration", func() {
 					libdv.StorageWithVolumeMode(k8sv1.PersistentVolumeFilesystem),
 				),
 			)
+
+			imageUrl := cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskAlpine)
+			dataVolume2 := libdv.NewDataVolume(
+				libdv.WithRegistryURLSourceAndPullMethod(imageUrl, cdiv1.RegistryPullNode),
+				libdv.WithStorage(
+					libdv.StorageWithStorageClass(sc),
+					libdv.StorageWithVolumeSize("512Mi"),
+					libdv.StorageWithAccessMode(k8sv1.ReadWriteOnce),
+					libdv.StorageWithVolumeMode(k8sv1.PersistentVolumeFilesystem),
+				),
+			)
 			dataVolume, err := virtClient.CdiClient().CdiV1beta1().DataVolumes(testsuite.GetTestNamespace(nil)).Create(context.Background(), dataVolume, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			libstorage.EventuallyDV(dataVolume, 100, HaveSucceeded())
 			pvc, err := virtClient.CoreV1().PersistentVolumeClaims(dataVolume.Namespace).Get(context.Background(), dataVolume.Name, metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
+
+			dataVolume2, err = virtClient.CdiClient().CdiV1beta1().DataVolumes(testsuite.GetTestNamespace(nil)).Create(context.Background(), dataVolume2, metav1.CreateOptions{})
+			Expect(err).ToNot(HaveOccurred())
+			libstorage.EventuallyDV(dataVolume2, 100, HaveSucceeded())
 
 			executorPod := createExecutorPodWithPVC("size-detection", pvc)
 			fstatOutput, err := exec.ExecuteCommandOnPod(
@@ -247,7 +262,7 @@ var _ = Describe(SIG("DataVolume Integration", func() {
 			Expect(err).ToNot(HaveOccurred())
 			freeSize := freeBlocks * ioBlockSize
 
-			vmi := libstorage.RenderVMIWithDataVolume(dataVolume.Name, dataVolume.Namespace)
+			vmi := libstorage.RenderVMIWithDataVolume(dataVolume2.Name, dataVolume2.Namespace)
 			vmi = libvmops.RunVMIAndExpectLaunch(vmi, 500)
 
 			// Let's wait for VMI to be ready
@@ -546,7 +561,7 @@ var _ = Describe(SIG("DataVolume Integration", func() {
 					fakeRegistryWithPort = fmt.Sprintf("%s:%s", fakeRegistryName, realRegistryPort)
 				}
 
-				imageUrl := cd.DataVolumeImportUrlFromRegistryForContainerDisk(fakeRegistryWithPort, cd.ContainerDiskCirros)
+				imageUrl := cd.DataVolumeImportUrlFromRegistryForContainerDisk(fakeRegistryWithPort, cd.ContainerDiskFedoraTestTooling)
 
 				dataVolume := libdv.NewDataVolume(
 					libdv.WithRegistryURLSourceAndPullMethod(imageUrl, cdiv1.RegistryPullPod),
@@ -714,7 +729,7 @@ var _ = Describe(SIG("DataVolume Integration", func() {
 				vm = libvmi.NewVirtualMachine(
 					libvmi.New(
 						libvmi.WithNamespace(testsuite.GetTestNamespace(nil)),
-						libvmi.WithResourceMemory("1Mi"),
+						libvmi.WithResourceMemory("128Mi"),
 						libvmi.WithDataVolume("disk0", dv.Name),
 						libvmi.WithServiceAccountDisk(testsuite.AdminServiceAccountName),
 					),
@@ -1042,7 +1057,7 @@ var _ = Describe(SIG("DataVolume Integration", func() {
 
 			vmi := libstorage.RenderVMIWithDataVolume(dataVolume.Name, testsuite.GetTestNamespace(nil),
 				libvmi.WithCloudInitNoCloud(libvmifact.WithDummyCloudForFastBoot()),
-				libvmi.WithMemoryRequest("512Mi"),
+				libvmi.WithResourceMemory("512Mi"),
 			)
 
 			dataVolume, err = virtClient.CdiClient().CdiV1beta1().DataVolumes(testsuite.GetTestNamespace(nil)).Create(context.Background(), dataVolume, metav1.CreateOptions{})

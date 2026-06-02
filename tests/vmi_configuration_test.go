@@ -1461,17 +1461,17 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 
 		It("[test_id:3126]should set machine type from kubevirt-config", Serial, func() {
 			kv := libkubevirt.GetCurrentKv(virtClient)
-			testEmulatedMachines := []string{"pc"}
+			machineType, expectedSubstring, emulatedMachines := machineTypeForArch()
 
 			config := kv.Spec.Configuration
 
 			config.ArchitectureConfiguration = &v1.ArchConfiguration{Amd64: &v1.ArchSpecificConfiguration{}, Arm64: &v1.ArchSpecificConfiguration{}, S390x: &v1.ArchSpecificConfiguration{}}
-			config.ArchitectureConfiguration.Amd64.MachineType = "pc"
-			config.ArchitectureConfiguration.Arm64.MachineType = "pc"
-			config.ArchitectureConfiguration.S390x.MachineType = "pc"
-			config.ArchitectureConfiguration.Amd64.EmulatedMachines = testEmulatedMachines
-			config.ArchitectureConfiguration.Arm64.EmulatedMachines = testEmulatedMachines
-			config.ArchitectureConfiguration.S390x.EmulatedMachines = testEmulatedMachines
+			config.ArchitectureConfiguration.Amd64.MachineType = machineType
+			config.ArchitectureConfiguration.Arm64.MachineType = machineType
+			config.ArchitectureConfiguration.S390x.MachineType = machineType
+			config.ArchitectureConfiguration.Amd64.EmulatedMachines = emulatedMachines
+			config.ArchitectureConfiguration.Arm64.EmulatedMachines = emulatedMachines
+			config.ArchitectureConfiguration.S390x.EmulatedMachines = emulatedMachines
 			kvconfig.UpdateKubeVirtConfigValueAndWait(config)
 
 			vmi := libvmifact.NewGuestless()
@@ -1479,14 +1479,14 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 			runningVMISpec, err := libdomain.GetRunningVMIDomainSpec(vmi)
 
 			Expect(err).ToNot(HaveOccurred())
-			Expect(runningVMISpec.OS.Type.Machine).To(ContainSubstring("pc-i440"))
+			Expect(runningVMISpec.OS.Type.Machine).To(ContainSubstring(expectedSubstring))
 		})
 	})
 
 	Context("with a custom scheduler", func() {
 		It("[test_id:4631]should set the custom scheduler on the pod", func() {
 			vmi := libvmi.New(
-				libvmi.WithMemoryRequest(enoughMemForSafeBiosEmulation),
+				libvmi.WithResourceMemory(enoughMemForSafeBiosEmulation),
 				WithSchedulerName("my-custom-scheduler"),
 			)
 			runningVMI := libvmops.RunVMIAndExpectScheduling(vmi, 30)
@@ -1500,8 +1500,8 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 
 		It("[test_id:3127]should set CPU request from VMI spec", func() {
 			vmi := libvmi.New(
-				libvmi.WithMemoryRequest(enoughMemForSafeBiosEmulation),
-				libvmi.WithCPURequest("500m"),
+				libvmi.WithResourceMemory(enoughMemForSafeBiosEmulation),
+				libvmi.WithResourceCPU("500m"),
 			)
 			runningVMI := libvmops.RunVMIAndExpectScheduling(vmi, 30)
 
@@ -1666,10 +1666,10 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 		// ordering:
 		// use a small disk for the other ones
 		testVMI := func() *v1.VirtualMachineInstance {
-			// virtio - added by NewCirros
-			return libvmifact.NewCirros(
+			// virtio - added by NewAlpine
+			return libvmifact.NewAlpine(
 				// add sata disk
-				libvmi.WithContainerSATADisk("disk2", cd.ContainerDiskFor(cd.ContainerDiskCirros)),
+				libvmi.WithContainerSATADisk("disk2", cd.ContainerDiskFor(cd.ContainerDiskAlpine)),
 			)
 			// NOTE: we have one disk per bus, so we expect vda, sda
 		}
@@ -1677,7 +1677,7 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 		checkPciAddress := func(vmi *v1.VirtualMachineInstance, expectedPciAddress string) {
 			err := console.SafeExpectBatch(vmi, []expect.Batcher{
 				&expect.BSnd{S: "\n"},
-				&expect.BExp{R: ""},
+				&expect.BExp{R: console.PromptExpression},
 				&expect.BSnd{S: "grep DEVNAME /sys/bus/pci/devices/" + expectedPciAddress + "/*/block/vda/uevent|awk -F= '{ print $2 }'\n"},
 				&expect.BExp{R: "vda"},
 			}, 15)
@@ -1689,7 +1689,7 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 			Expect(err).ToNot(HaveOccurred())
 			libwait.WaitForSuccessfulVMIStart(vmi)
 
-			Expect(console.LoginToCirros(vmi)).To(Succeed())
+			Expect(console.LoginToAlpine(vmi)).To(Succeed())
 
 			Expect(console.SafeExpectBatch(vmi, []expect.Batcher{
 				// keep the ordering!
@@ -1707,7 +1707,7 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 			vmi.Spec.Domain.Devices.Disks[0].Disk.Bus = v1.DiskBusVirtio
 			vmi, err := virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(vmi)).Create(context.Background(), vmi, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
-			libwait.WaitUntilVMIReady(vmi, console.LoginToCirros)
+			libwait.WaitUntilVMIReady(vmi, console.LoginToAlpine)
 
 			checkPciAddress(vmi, vmi.Spec.Domain.Devices.Disks[0].Disk.PciAddress)
 		})
@@ -2451,6 +2451,13 @@ func withMachineType(machineType string) libvmi.Option {
 	return func(vmi *v1.VirtualMachineInstance) {
 		vmi.Spec.Domain.Machine = &v1.Machine{Type: machineType}
 	}
+}
+
+func machineTypeForArch() (machineType, expectedSubstring string, emulatedMachines []string) {
+	if testsuite.Arch == testsuite.ArchS390x {
+		return "s390-ccw-virtio", "s390-ccw-virtio", []string{"s390-ccw-virtio*"}
+	}
+	return "pc", "pc-i440", []string{"pc"}
 }
 
 func WithSchedulerName(schedulerName string) libvmi.Option {

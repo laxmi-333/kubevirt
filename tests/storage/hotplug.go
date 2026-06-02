@@ -383,11 +383,11 @@ var _ = Describe(SIG("Hotplug", func() {
 			libvmi.WithCloudInitNoCloud(libvmifact.WithDummyCloudForFastBoot()),
 		}
 		dv := libdv.NewDataVolume(
-			libdv.WithRegistryURLSource(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskCirros)),
+			libdv.WithRegistryURLSource(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskAlpineTestTooling)),
 			libdv.WithNamespace(testsuite.GetTestNamespace(nil)),
 			libdv.WithStorage(
 				libdv.StorageWithStorageClass(storageClass),
-				libdv.StorageWithVolumeSize(cd.ContainerDiskSizeBySourceURL(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskCirros))),
+				libdv.StorageWithVolumeSize(cd.ContainerDiskSizeBySourceURL(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskAlpineTestTooling))),
 			),
 		)
 		vm := libvmi.NewVirtualMachine(
@@ -522,12 +522,12 @@ var _ = Describe(SIG("Hotplug", func() {
 		Eventually(func() string {
 			vmi, err = virtClient.VirtualMachineInstance(obj.GetNamespace()).Get(context.Background(), obj.GetName(), metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
-			return vmi.Status.VolumeStatus[4].Target
+			return vmi.Status.VolumeStatus[3].Target
 		}, 40*time.Second, 2*time.Second).Should(Equal("sdc"))
 		Eventually(func() string {
 			vmi, err = virtClient.VirtualMachineInstance(obj.GetNamespace()).Get(context.Background(), obj.GetName(), metav1.GetOptions{})
 			Expect(err).ToNot(HaveOccurred())
-			return vmi.Status.VolumeStatus[5].Target
+			return vmi.Status.VolumeStatus[4].Target
 		}, 40*time.Second, 2*time.Second).Should(Equal("sdd"))
 
 		removeVolumeFunc(obj.GetName(), obj.GetNamespace(), testVolumes[2], false)
@@ -568,7 +568,7 @@ var _ = Describe(SIG("Hotplug", func() {
 		)
 		BeforeEach(func() {
 			By("Creating VirtualMachine")
-			vm, err = virtClient.VirtualMachine(testsuite.GetTestNamespace(nil)).Create(context.Background(), libvmi.NewVirtualMachine(libvmifact.NewCirros()), metav1.CreateOptions{})
+			vm, err = virtClient.VirtualMachine(testsuite.GetTestNamespace(nil)).Create(context.Background(), libvmi.NewVirtualMachine(libvmifact.NewAlpineWithTestTooling()), metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -636,7 +636,7 @@ var _ = Describe(SIG("Hotplug", func() {
 			Expect(err).ToNot(HaveOccurred())
 			libstorage.VerifyVolumeAndDiskInVMISpec(virtClient, vmi, dvName)
 			libstorage.VerifyVolumeStatus(virtClient, vmi, v1.VolumeReady, "", true, dvName)
-			getCirrosVmiConsoleAndLogin(vmi)
+			getAlpineVmiConsoleAndLogin(vmi)
 			verifySingleAttachmentPod(virtClient, vmi)
 		})
 
@@ -843,7 +843,7 @@ var _ = Describe(SIG("Hotplug", func() {
 					Skip("Fail no filesystem storage class available")
 				}
 
-				vmi := libvmifact.NewCirros()
+				vmi := libvmifact.NewFedora()
 				vm, err = virtClient.VirtualMachine(testsuite.GetTestNamespace(vmi)).Create(context.Background(), libvmi.NewVirtualMachine(vmi, libvmi.WithRunStrategy(v1.RunStrategyAlways)), metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())
 				Eventually(matcher.ThisVM(vm)).WithTimeout(300 * time.Second).WithPolling(time.Second).Should(matcher.BeReady())
@@ -886,7 +886,7 @@ var _ = Describe(SIG("Hotplug", func() {
 				addDVVolumeVMI(vm.Name, vm.Namespace, "ephemeral-volume", dvEphemeral.Name, v1.DiskBusSCSI, false, "")
 				ephemeralCount++
 
-				vmi := libvmifact.NewCirros()
+				vmi := libvmifact.NewFedora()
 				vm2, err := virtClient.VirtualMachine(testsuite.GetTestNamespace(vm)).Create(context.Background(), libvmi.NewVirtualMachine(vmi, libvmi.WithRunStrategy(v1.RunStrategyAlways)), metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())
 
@@ -1632,9 +1632,9 @@ var _ = Describe(SIG("Hotplug", func() {
 		)
 
 		createVMWithRatio := func(memRatio, cpuRatio float64) *v1.VirtualMachine {
-			vm := libvmi.NewVirtualMachine(libvmifact.NewCirros(), libvmi.WithRunStrategy(v1.RunStrategyAlways))
+			vm := libvmi.NewVirtualMachine(libvmifact.NewFedora(), libvmi.WithRunStrategy(v1.RunStrategyAlways))
 
-			memLimit := int64(1024 * 1024 * 128) //128Mi
+			memLimit := int64(1024 * 1024 * 512) //512Mi
 			memRequest := int64(math.Ceil(float64(memLimit) / memRatio))
 			memRequestQuantity := resource.NewScaledQuantity(memRequest, 0)
 			memLimitQuantity := resource.NewScaledQuantity(memLimit, 0)
@@ -2125,7 +2125,7 @@ var _ = Describe(SIG("Hotplug", func() {
 
 		It("on an offline VM", func() {
 			By("Creating VirtualMachine")
-			vm, err = virtClient.VirtualMachine(testsuite.NamespaceTestDefault).Create(context.Background(), libvmi.NewVirtualMachine(libvmifact.NewCirros()), metav1.CreateOptions{})
+			vm, err = virtClient.VirtualMachine(testsuite.NamespaceTestDefault).Create(context.Background(), libvmi.NewVirtualMachine(libvmifact.NewFedora()), metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
 			By("Adding test volumes")
 			pv2, pvc2, err := CreatePVandPVCwithSCSIDisk(nodeName, device, testsuite.NamespaceTestDefault, "scsi-disks-test2", "scsipv2", "scsipvc2")
