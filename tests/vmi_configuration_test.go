@@ -818,8 +818,8 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 				Eventually(func() bool { return verifyHugepagesConsumption(hugepagesVmi) }, 30*time.Second, 5*time.Second).Should(BeTrue())
 			},
 				Entry("[test_id:1671]hugepages-2Mi", decorators.RequiresHugepages2Mi, Serial, libvmi.WithHugepages("2Mi"), libvmi.WithMemoryRequest("64Mi"), noGuestOption()),
-				Entry("[test_id:1672]hugepages-1Gi", decorators.RequiresHugepages1Gi, Serial, libvmi.WithHugepages("1Gi"), libvmi.WithMemoryRequest("1Gi"), noGuestOption()),
-				Entry("[test_id:1672]hugepages-2Mi with guest memory set explicitly", decorators.RequiresHugepages2Mi, Serial, libvmi.WithHugepages("2Mi"), libvmi.WithMemoryRequest("70Mi"), libvmi.WithGuestMemory("64Mi")),
+				Entry("hugepages-1Gi", decorators.RequiresHugepages1Gi, Serial, libvmi.WithHugepages("1Gi"), libvmi.WithMemoryRequest("1Gi"), noGuestOption()),
+				Entry("[test_id:1672]hugepages-1Mi with guest memory set explicitly", decorators.RequiresHugepages1Mi, Serial, libvmi.WithHugepages("1Mi"), libvmi.WithMemoryRequest("70Mi"), libvmi.WithGuestMemory("128Mi")),
 			)
 
 			Context("with unsupported page size", func() {
@@ -1666,10 +1666,10 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 		// ordering:
 		// use a small disk for the other ones
 		testVMI := func() *v1.VirtualMachineInstance {
-			// virtio - added by NewCirros
-			return libvmifact.NewCirros(
+			// virtio - added by NewAlpine
+			return libvmifact.NewAlpine(
 				// add sata disk
-				libvmi.WithContainerSATADisk("disk2", cd.ContainerDiskFor(cd.ContainerDiskCirros)),
+				libvmi.WithContainerSATADisk("disk2", cd.ContainerDiskFor(cd.ContainerDiskAlpine)),
 			)
 			// NOTE: we have one disk per bus, so we expect vda, sda
 		}
@@ -1689,11 +1689,11 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 			Expect(err).ToNot(HaveOccurred())
 			libwait.WaitForSuccessfulVMIStart(vmi)
 
-			Expect(console.LoginToCirros(vmi)).To(Succeed())
+			Expect(console.LoginToAlpine(vmi)).To(Succeed())
 
 			Expect(console.SafeExpectBatch(vmi, []expect.Batcher{
 				// keep the ordering!
-				&expect.BSnd{S: "ls /dev/vda  /dev/vdb\n"},
+				&expect.BSnd{S: "ls /dev/vda  /dev/sda\n"},
 				&expect.BExp{R: ""},
 				&expect.BSnd{S: "echo $?\n"},
 				&expect.BExp{R: console.RetValue("0")},
@@ -1707,7 +1707,7 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 			vmi.Spec.Domain.Devices.Disks[0].Disk.Bus = v1.DiskBusVirtio
 			vmi, err := virtClient.VirtualMachineInstance(testsuite.GetTestNamespace(vmi)).Create(context.Background(), vmi, metav1.CreateOptions{})
 			Expect(err).ToNot(HaveOccurred())
-			libwait.WaitUntilVMIReady(vmi, console.LoginToCirros)
+			libwait.WaitUntilVMIReady(vmi, console.LoginToAlpine)
 
 			checkPciAddress(vmi, vmi.Spec.Domain.Devices.Disks[0].Disk.PciAddress)
 		})

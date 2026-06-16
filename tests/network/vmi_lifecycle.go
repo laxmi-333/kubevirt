@@ -125,7 +125,7 @@ var _ = Describe(SIG("[crit:high][vendor:cnv-qe@redhat.com][level:component]", d
 				verifyDummyNicForBridgeNetwork(bridgeVMI)
 
 				vmIP := libnet.GetVmiPrimaryIPByFamily(bridgeVMI, k8sv1.IPv4Protocol)
-				dadCommand := fmt.Sprintf("sudo /usr/sbin/arping -D -I eth0 -c 2 %s | grep Received | cut -d ' ' -f 2\n", vmIP)
+				dadCommand := fmt.Sprintf("/usr/sbin/arping -D -I eth0 -c 2 %s | grep Received | cut -d ' ' -f 2\n", vmIP)
 
 				Expect(console.SafeExpectBatch(bridgeVMI, []expect.Batcher{
 					&expect.BSnd{S: "\n"},

@@ -42,6 +42,12 @@ func IsRealtimeCapable(node *k8sv1.Node) bool {
 	return false
 }
 
+func Has1MiHugepages(node *k8sv1.Node) bool {
+	gomega.Expect(node).ToNot(gomega.BeNil())
+	_, exists := node.Status.Capacity[k8sv1.ResourceHugePagesPrefix+"1Mi"]
+	return exists
+}
+
 func Has2MiHugepages(node *k8sv1.Node) bool {
 	gomega.Expect(node).ToNot(gomega.BeNil())
 	_, exists := node.Status.Capacity[k8sv1.ResourceHugePagesPrefix+"2Mi"]
