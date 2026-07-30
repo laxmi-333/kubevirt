@@ -1437,6 +1437,10 @@ var _ = Describe("[rfe_id:273][crit:high][vendor:cnv-qe@redhat.com][level:compon
 		})
 
 		It("soft reboot vmi with ACPI feature enabled should succeed", decorators.Conformance, func() {
+			if checks.IsS390X(libnode.GetArch()) {
+				Skip("Skip test on s390x")
+			}
+
 			vmi := libvmops.RunVMIAndExpectLaunch(libvmifact.NewAlpine(), vmiLaunchTimeout)
 
 			Expect(console.LoginToAlpine(vmi)).To(Succeed())

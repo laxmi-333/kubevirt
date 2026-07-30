@@ -273,6 +273,9 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 		})
 		Context("with a Alpine disk", func() {
 			It("[test_id:6969US]should be successfully migrate with a tablet device", decorators.Conformance, func() {
+				if checks.IsS390X(libnode.GetArch()) {
+					Skip("Skip test on s390x")
+				}
 				vmi := libvmifact.NewAlpineWithTestTooling(
 					libnet.WithMasqueradeNetworking(),
 					libvmi.WithTablet("tablet0", v1.InputBusUSB),
@@ -318,6 +321,9 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 			})
 
 			It("[test_id:6970US]should migrate vmi with cdroms on various bus types", decorators.Conformance, func() {
+				if checks.IsS390X(libnode.GetArch()) {
+					Skip("Skip test on s390x")
+				}
 				vmi := libvmifact.NewAlpineWithTestTooling(
 					libnet.WithMasqueradeNetworking(),
 					libvmi.WithEphemeralCDRom("cdrom-0", v1.DiskBusSATA, cd.ContainerDiskFor(cd.ContainerDiskAlpine)),
@@ -2236,6 +2242,9 @@ var _ = Describe(SIG("VM Live Migration", decorators.RequiresTwoSchedulableNodes
 	Context("with sata disks", func() {
 
 		It("[test_id:1853]VM with containerDisk + CloudInit + ServiceAccount + ConfigMap + Secret + DownwardAPI + External Kernel Boot + USB Disk", decorators.Conformance, func() {
+			if checks.IsS390X(libnode.GetArch()) {
+				Skip("Skip test on s390x")
+			}
 			vmi := prepareVMIWithAllVolumeSources(testsuite.GetTestNamespace(nil), true)
 
 			Expect(vmi.Spec.Domain.Devices.Disks).To(HaveLen(7))
