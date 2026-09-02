@@ -92,7 +92,7 @@ var _ = Describe(SIG("CPU", func() {
 		It("[test_id:1660]should report 3 sockets under guest OS", func() {
 			vmi := libvmifact.NewAlpine(
 				libvmi.WithCPUCount(2, 0, 3),
-				libvmi.WithMemoryRequest("128Mi"),
+				libvmi.WithMemoryRequest("256Mi"),
 			)
 
 			By("Starting a VirtualMachineInstance")
