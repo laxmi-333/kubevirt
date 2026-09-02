@@ -793,11 +793,11 @@ var _ = Describe("[sig-compute]Configurations", decorators.SigCompute, func() {
 
 			It("should add guest-to-memory headroom", func() {
 				const guestMemoryStr = "1024M"
-				origVmiWithoutHeadroom := libvmi.New(
+				origVmiWithoutHeadroom := libvmifact.NewGuestless(
 					libvmi.WithMemoryRequest(guestMemoryStr),
 					libvmi.WithGuestMemory(guestMemoryStr),
 				)
-				origVmiWithHeadroom := libvmi.New(
+				origVmiWithHeadroom := libvmifact.NewGuestless(
 					libvmi.WithMemoryRequest(guestMemoryStr),
 					libvmi.WithGuestMemory(guestMemoryStr),
 				)

@@ -181,7 +181,7 @@ var _ = Describe("[rfe_id:273][crit:high][vendor:cnv-qe@redhat.com][level:compon
 			for k, v := range vmiAnnotations {
 				options = append(options, libvmi.WithAnnotation(k, v))
 			}
-			vmi := libvmi.New(options...)
+			vmi := libvmifact.NewGuestless(options...)
 
 			vmi = libvmops.RunVMIAndExpectLaunch(vmi, startupTimeout)
 
@@ -676,6 +676,13 @@ var _ = Describe("[rfe_id:273][crit:high][vendor:cnv-qe@redhat.com][level:compon
 				vmiKiller, err := pkillAllLaunchers(kubevirt.Client(), nodeName)
 				Expect(err).ToNot(HaveOccurred(), "Should create vmi-killer pod to kill virt-launcher successfully")
 				watcher.New(vmiKiller).SinceWatchedObjectResourceVersion().Timeout(20*time.Second).WaitFor(context.Background(), watcher.NormalEvent, v1.Started)
+
+				// The launcher pod may have other containers (e.g. the kernel-boot container-disk of the s390x guestless VMI)
+				// that keep the pod alive, so also kill all remaining processes of the VMI
+				By("killing the remaining processes of the vmi")
+				vmi, err = kubevirt.Client().VirtualMachineInstance(vmi.Namespace).Get(context.Background(), vmi.Name, metav1.GetOptions{})
+				Expect(err).ToNot(HaveOccurred(), "Should get vmi successfully")
+				Expect(pkillVMI(kubevirt.Client(), vmi)).To(Succeed(), "Should create vmi-killer pod to kill the vmi processes successfully")
 
 				// it will take at least 45 seconds until the vmi is gone, check the schedulable state in the meantime
 				By("marking the node as not schedulable")

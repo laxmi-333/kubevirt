@@ -21,6 +21,7 @@ import (
 	"kubevirt.io/kubevirt/pkg/libdv"
 	"kubevirt.io/kubevirt/pkg/libvmi"
 	"kubevirt.io/kubevirt/pkg/pointer"
+	cd "kubevirt.io/kubevirt/tests/containerdisk"
 	"kubevirt.io/kubevirt/tests/decorators"
 	"kubevirt.io/kubevirt/tests/framework/kubevirt"
 	"kubevirt.io/kubevirt/tests/framework/matcher"
@@ -119,7 +120,7 @@ var _ = Describe("[crit:medium][vendor:cnv-qe@redhat.com][level:component][sig-c
 		sourceDV = libdv.NewDataVolume(
 			libdv.WithNamespace(namespace),
 			libdv.WithForceBindAnnotation(),
-			libdv.WithBlankImageSource(),
+			libdv.WithRegistryURLSource(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskAlpine)),
 			libdv.WithStorage(libdv.StorageWithAccessMode(k8sv1.ReadWriteOnce), libdv.StorageWithVolumeSize("1Gi")),
 			libdv.WithDefaultInstancetype(instancetypeapi.SingularResourceName, instancetype.Name),
 			libdv.WithDefaultPreference(instancetypeapi.SingularPreferenceResourceName, preference.Name),
@@ -237,16 +238,16 @@ var _ = Describe("[crit:medium][vendor:cnv-qe@redhat.com][level:component][sig-c
 		),
 		Entry(", DataVolumeSourceRef and DataSource with labels",
 			func() []virtv1.DataVolumeTemplateSpec {
-				By("Creating a blank DV and PVC without labels")
-				blankDV := libdv.NewDataVolume(
+				By("Creating an Alpine DV and PVC without labels")
+				alpineDV := libdv.NewDataVolume(
 					libdv.WithNamespace(namespace),
 					libdv.WithForceBindAnnotation(),
-					libdv.WithBlankImageSource(),
+					libdv.WithRegistryURLSource(cd.DataVolumeImportUrlForContainerDisk(cd.ContainerDiskAlpine)),
 					libdv.WithStorage(libdv.StorageWithAccessMode(k8sv1.ReadWriteOnce), libdv.StorageWithVolumeSize("1Gi")),
 				)
-				blankDV, err := virtClient.CdiClient().CdiV1beta1().DataVolumes(namespace).Create(context.Background(), blankDV, metav1.CreateOptions{})
+				alpineDV, err := virtClient.CdiClient().CdiV1beta1().DataVolumes(namespace).Create(context.Background(), alpineDV, metav1.CreateOptions{})
 				Expect(err).ToNot(HaveOccurred())
-				libstorage.EventuallyDV(sourceDV, dvSuccessTimeoutSeconds, matcher.HaveSucceeded())
+				libstorage.EventuallyDV(alpineDV, dvSuccessTimeoutSeconds, matcher.HaveSucceeded())
 
 				By("Creating a DataSource")
 				// TODO - Replace with libds?
@@ -264,7 +265,7 @@ var _ = Describe("[crit:medium][vendor:cnv-qe@redhat.com][level:component][sig-c
 					Spec: cdiv1beta1.DataSourceSpec{
 						Source: cdiv1beta1.DataSourceSource{
 							PVC: &cdiv1beta1.DataVolumeSourcePVC{
-								Name:      blankDV.Name,
+								Name:      alpineDV.Name,
 								Namespace: namespace,
 							},
 						},

@@ -78,6 +78,7 @@ var _ = Describe(SIG("VM Post Copy Live Migration", decorators.RequiresTwoSchedu
 		policyName := fmt.Sprintf("testpolicy-%s", rand.String(5))
 		migrationPolicy = kubecli.NewMinimalMigrationPolicy(policyName)
 		migrationPolicy.Spec.AllowPostCopy = kvpointer.P(true)
+		migrationPolicy.Spec.AllowWorkloadDisruption = kvpointer.P(true)
 		migrationPolicy.Spec.CompletionTimeoutPerGiB = kvpointer.P(int64(1))
 		migrationPolicy.Spec.BandwidthPerMigration = kvpointer.P(resource.MustParse("5Mi"))
 	})
@@ -120,6 +121,7 @@ var _ = Describe(SIG("VM Post Copy Live Migration", decorators.RequiresTwoSchedu
 		applyKubevirtCR := func() {
 			config := getCurrentKvConfig(virtClient)
 			config.MigrationConfiguration.AllowPostCopy = migrationPolicy.Spec.AllowPostCopy
+			config.MigrationConfiguration.AllowWorkloadDisruption = migrationPolicy.Spec.AllowWorkloadDisruption
 			config.MigrationConfiguration.CompletionTimeoutPerGiB = migrationPolicy.Spec.CompletionTimeoutPerGiB
 			config.MigrationConfiguration.BandwidthPerMigration = migrationPolicy.Spec.BandwidthPerMigration
 			kvconfig.UpdateKubeVirtConfigValueAndWait(config)
